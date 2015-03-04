@@ -13,7 +13,7 @@ void setup_motor_pwm(int pwmoffset) {
   DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
   TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
   TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
-  ICR4 = 800;
+  ICR4 = 800; // 20kHz without prescaler
   OCR4A = ICR4 - pwmoffset;
 }
 
