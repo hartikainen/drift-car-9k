@@ -8,19 +8,17 @@
 #define BUMPER_DDR DDRA
 #define BUMPER_PIN PINA
 
-void setup_motor_pwm(int pwmoffset)
-{
-    PORTK |= 1 << PK0;
-    DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
-    TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
-    TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
-    ICR4 = 800;
-    OCR4A = ICR4 - pwmoffset;
+void setup_motor_pwm(int pwmoffset) {
+  PORTK |= 1 << PK0;
+  DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
+  TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
+  TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
+  ICR4 = 800;
+  OCR4A = ICR4 - pwmoffset;
 }
 
-void disable_motor_pwm(void)
-{
-   TCCR4A |= ~_BV(COM4A1);
+void disable_motor_pwm(void) {
+  TCCR4A |= ~_BV(COM4A1);
 }
 
 void setup_ddr(void) {
@@ -53,41 +51,38 @@ int main(void) {
   setup_ddr();
   setup_bumper_wheel_timer();
   sei();
-
   for(;;) {
     bumper = ~BUMPER_PIN;
-    
     if (!steering_locked) {
       steering_locked = 1;
       reset_timer();
-
       switch (bumper) {
-      case 0b00000001:
-	setup_pwm(MIDDLE - 40);
-	break;
-      case 0b00000010:
-	setup_pwm(MIDDLE - 30);
-	break;
-      case 0b00000100:
-	setup_pwm(MIDDLE - 20);
-	break;
-      case 0b00001000:
-	setup_pwm(MIDDLE - 10);
-	break;
-      case 0b00010000:
-	setup_pwm(MIDDLE + 10);
-	break;
-      case 0b00100000:
-	setup_pwm(MIDDLE + 20);
-	break;
-      case 0b01000000:
-	setup_pwm(MIDDLE + 30);
-	break;
-      case 0b10000000:
-	setup_pwm(MIDDLE + 40);
-	break;
-      default:
-	setup_pwm(MIDDLE);
+        case 0b00000001:
+          setup_pwm(MIDDLE - 40);
+          break;
+        case 0b00000010:
+          setup_pwm(MIDDLE - 30);
+          break;
+        case 0b00000100:
+          setup_pwm(MIDDLE - 20);
+          break;
+        case 0b00001000:
+          setup_pwm(MIDDLE - 10);
+          break;
+        case 0b00010000:
+          setup_pwm(MIDDLE + 10);
+          break;
+        case 0b00100000:
+          setup_pwm(MIDDLE + 20);
+          break;
+        case 0b01000000:
+          setup_pwm(MIDDLE + 30);
+          break;
+        case 0b10000000:
+          setup_pwm(MIDDLE + 40);
+          break;
+        default:
+          setup_pwm(MIDDLE);
       }
     }
   }
