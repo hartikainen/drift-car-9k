@@ -8,6 +8,12 @@
 #define BUMPER_DDR DDRA
 #define BUMPER_PIN PINA
 
+// DEFINITIONS FOR THE DISPLAY
+#define BAUD 9600
+#define FOSC 1843200 // f_{OSC}, e.g. the clock speed, this might be available in F_CPU?
+#define MYUBRR (FOSC/16/BAUD-1)
+
+<<<<<<< HEAD
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
   DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
@@ -36,6 +42,34 @@ void setup_ddr(void) {
   BUMPER_DDR = 0;
 }
 
+// Straight from the [datasheet, p. 211]
+void USART_Init(unsigned int ubrr) {
+  /* Set baud rate */
+  UBRR0H = (unsigned char) (ubrr>>8);
+  UBRR0L = (unsigned char) ubrr;
+  /* Enable receiver and transmitter */
+  UCSR1B = (1<<RXEN1) | (1<<TXEN1);
+  /* Set frame format: 8data, 2stop bit */
+  UCSR1C = (1<<USBS1) | (3<<UCSZ10);
+}
+
+void USART_putstring(char* StringPtr) {
+  while(*StringPtr != 0x00) {
+    USART_send(*StringPtr);
+    StringPtr++;
+  }
+}
+
+void USART_send(unsigned char data) {
+  while( !(UCSR1A & (1 << UDRE1)) );
+  UDR0 = data;
+}
+
+unsigned char USART_receive(void) {
+  while(!(UCSR1A & (1<<RXC1)));
+  return UDR0;
+}
+
 void reset_timer(void) {
   TCNT2 = 0;
 }
@@ -56,19 +90,41 @@ void setup_pwm(int val) {
 
 int MIDDLE = 370;
 volatile int steering_locked = 0;
-int main(void) {
+int main(void)
+{
   uint8_t bumper;
+
   setup_motor_pwm(140);
   setup_leds();
   setup_tachometer();
+
+  char String[] = "JIIRI";
+  int testi = 1;
+  char test2;
+
   setup_ddr();
+  
+  //  sbi(DDRB, 0);
+  //  cbi(PORTB, 0);
+  USART_Init(MYUBRR);
+  
   setup_bumper_wheel_timer();
   sei();
   for(;;) {
+    //    if (testi) USART_send("Z");
+    //    test2 = USART_receive();
+    if (test2 == 0x06) {testi = 0;}
+    
     bumper = ~BUMPER_PIN;
     if (!steering_locked) {
       steering_locked = 1;
       reset_timer();
+
+      if (bumper > 0) {
+	USART_send("s");
+	//	USART_putstring(String);
+      }
+
       switch (bumper) {
         case 0b00000001:
           setup_pwm(MIDDLE - 40);
@@ -101,7 +157,7 @@ int main(void) {
   }
 }
 
-int LOOP_COUNT = 50;
+int LOOP_COUNT = 10;
 volatile int timer_counter = 0;
 ISR(TIMER2_COMPA_vect) {
   if (timer_counter++ > LOOP_COUNT) {
@@ -111,6 +167,12 @@ ISR(TIMER2_COMPA_vect) {
   }
 }
 
+
 ISR(TIMER5_CAPT_vect) {
   PINC |= _BV(PC0);
 }
+
+/* THE DISPLAY STUFF,
+ * THESE SHOULD PROBABLY
+ * BE MOVED TO ANOTHER FILE
+ */
