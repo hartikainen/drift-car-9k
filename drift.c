@@ -2,19 +2,26 @@
 #include <avr/io.h>   /* definitions for all PORT* and other registers. You absolutely will need this one */
 #include <avr/interrupt.h>
 
-// TODO: remove this
-#include <util/delay.h>
+#include <avr/delay.h>
 
 #define BUMPER_PORT PORTA
 #define BUMPER_DDR DDRA
 #define BUMPER_PIN PINA
 
-#define LEDS_PORT PORTC
-#define LEDS_DDR  DDRC
-#define LEDS_PIN  PINC
+void setup_motor_pwm(int pwmoffset)
+{
+    PORTK |= 1 << PK0;
+    DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
+    TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
+    TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
+    ICR4 = 800;
+    OCR4A = ICR4 - pwmoffset;
+}
 
-#define BLINK_LED PC2
-#define OTHER_LED PC0
+void disable_motor_pwm(void)
+{
+   TCCR4A |= ~_BV(COM4A1);
+}
 
 void setup_ddr(void) {
   BUMPER_DDR = 0;
@@ -42,7 +49,7 @@ int MIDDLE = 370;
 volatile int steering_locked = 0;
 int main(void) {
   uint8_t bumper;
-
+  setup_motor_pwm(140);
   setup_ddr();
   setup_bumper_wheel_timer();
   sei();
