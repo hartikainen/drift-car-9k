@@ -21,6 +21,14 @@ void disable_motor_pwm(void) {
   TCCR4A |= ~_BV(COM4A1);
 }
 
+void setup_leds(void) {
+  DDRC = 0xff;
+}
+void setup_tachometer(void) {
+  PORTL |= 1 << PL2;
+  TIMSK5 |= (1 << ICIE5);
+}
+
 void setup_ddr(void) {
   BUMPER_DDR = 0;
 }
@@ -48,6 +56,8 @@ volatile int steering_locked = 0;
 int main(void) {
   uint8_t bumper;
   setup_motor_pwm(140);
+  setup_leds();
+  setup_tachometer();
   setup_ddr();
   setup_bumper_wheel_timer();
   sei();
@@ -96,4 +106,8 @@ ISR(TIMER2_COMPA_vect) {
     steering_locked = 0;
     TCCR1A &= ~_BV(COM1A1);
   }
+}
+
+ISR(TIMER1_CAPT_vect){
+  PINC |= _BV(PC0);
 }
