@@ -23,8 +23,6 @@ void disable_pwm(void)
 int main(void) {
     PORTK |= 1 << PK0;
     setup_pwm(140);
-    _delay_ms(100000);
-    disable_pwm();
     for(;;) {
     }
 }
