@@ -25,9 +25,9 @@ void reset_timer(void) {
 }
 
 void setup_bumper_wheel_timer(void) {
-  TCCR2B |= (1 << WGM22) | (1 << CS20) | (1 << CS21);
+  TCCR2B |= (1 << WGM22) | (1 << CS22) | (1 << CS21) | (1 << CS20);
   TIMSK2 |= (1 << OCIE2A);
-  OCR2A = 254;
+  OCR2A = 0b11111111;
 }
 
 void setup_pwm(int val) {
@@ -86,7 +86,12 @@ int main(void) {
   }
 }
 
+int LOOP_COUNT = 50;
+volatile int timer_counter = 0;
 ISR(TIMER2_COMPA_vect) {
-  steering_locked = 0;
-  TCCR1A &= ~_BV(COM1A1);
+  if (timer_counter++ > LOOP_COUNT) {
+    timer_counter = 0;
+    steering_locked = 0;
+    TCCR1A &= ~_BV(COM1A1);
+  }
 }
