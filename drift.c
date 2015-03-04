@@ -5,8 +5,9 @@
 #include <avr/delay.h>
 
 
-void setup_pwm(int pwmoffset)
+void setup_motor_pwm(int pwmoffset)
 {
+    PORTK |= 1 << PK0;
     DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
     TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
     TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
@@ -14,15 +15,14 @@ void setup_pwm(int pwmoffset)
     OCR4A = ICR4 - pwmoffset;
 }
 
-void disable_pwm(void)
+void disable_motor_pwm(void)
 {
    TCCR4A |= ~_BV(COM4A1);
 }
 
 
 int main(void) {
-    PORTK |= 1 << PK0;
-    setup_pwm(140);
+    setup_motor_pwm(140);
     for(;;) {
     }
 }
