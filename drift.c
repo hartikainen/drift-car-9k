@@ -24,8 +24,11 @@ void disable_motor_pwm(void) {
 void setup_leds(void) {
   DDRC = 0xff;
 }
+
 void setup_tachometer(void) {
-  PORTL |= 1 << PL2;
+  DDRL &= ~(1<<PL2);
+  TCCR5B |= 1 << CS50 | 1 << ICES5;
+  TIFR5 = 1<< ICF5;
   TIMSK5 |= (1 << ICIE5);
 }
 
@@ -108,6 +111,6 @@ ISR(TIMER2_COMPA_vect) {
   }
 }
 
-ISR(TIMER1_CAPT_vect){
+ISR(TIMER5_CAPT_vect) {
   PINC |= _BV(PC0);
 }
