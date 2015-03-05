@@ -11,7 +11,7 @@
 // DEFINITIONS FOR THE DISPLAY
 #define BAUD 9600
 #define FOSC 1843200 // f_{OSC}, e.g. the clock speed, this might be available in F_CPU?
-#define MYUBRR (FOSC/16/BAUD-1)
+#define MYUBRR (F_CPU/(16UL*BAUD) - 1)
 
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
@@ -44,20 +44,18 @@ void setup_ddr(void) {
 // Straight from the [datasheet, p. 211]
 void USART_Init(unsigned int ubrr) {
   /* Set baud rate */
-  UBRR0H = (unsigned char) (ubrr>>8);
-  UBRR0L = (unsigned char) ubrr;
+  UBRR1H = (unsigned char) (ubrr>>8);
+  UBRR1L = (unsigned char) ubrr;
   /* Enable receiver and transmitter */
-  UCSR1B = (1<<RXEN1) | (1<<TXEN1);
-  /* Set frame format: 8data, 2stop bit */
-  UCSR1C = (1<<USBS1) | (3<<UCSZ10);
+  UCSR1B |= (1<<RXEN1) | (1<<TXEN1);
+  /* Set frame format: 8 data bits, no parity, 1 stop bit */
+  UCSR1C |= (1<<UCSZ10) | (1<<UCSZ11);
 }
 
-void USART_putstring(char* StringPtr) {
-  while(*StringPtr != 0x00) {
-    USART_send(*StringPtr);
-    StringPtr++;
+void USART_putstring(char *StringPtr) {
+  while(*StringPtr != '\0') {
+    USART_send(*StringPtr++);
   }
-  PORTC = 0;
 }
 
 void USART_send(unsigned char data) {
@@ -66,7 +64,10 @@ void USART_send(unsigned char data) {
 }
 
 unsigned char USART_receive(void) {
-  while( !(UCSR1A & (1<<RXC1)) );
+  while( !(UCSR1A & (1 << RXC1)) ) {
+    _delay_ms(100);
+    PINC = (1 << PC0) | (1 << PC1);
+  }
   return UDR1;
 }
 
@@ -93,44 +94,35 @@ volatile int steering_locked = 0;
 int main(void)
 {
   uint8_t bumper;
+  char String2[] = {'B', 0xFF, 0xFF};
 
   //  setup_motor_pwm(140);
   setup_leds();
   setup_tachometer();
 
-  char String[] = "JIIRI";
-  int testi = 1;
-  char test2;
-
   setup_ddr();
-  
-  //  sbi(DDRB, 0);
-  //  cbi(PORTB, 0);
+
   USART_Init(MYUBRR);
   PORTC = 0;
 
-  _delay_ms(5000);
-  USART_send("U");
+  _delay_ms(2000);
+  USART_send('U');
   _delay_ms(2000);
   char jiiri = USART_receive();
-  if (jiiri == 0x06) {
+  if (jiiri) {
     PORTC |= _BV(PC0) | _BV(PC1);
   }
   
   setup_bumper_wheel_timer();
   sei();
   for(;;) {
-    //    if (testi) USART_send("Z");
-    //    test2 = USART_receive();
-    if (test2 == 0x06) {testi = 0;}
-    
     bumper = ~BUMPER_PIN;
     if (!steering_locked) {
       steering_locked = 1;
       reset_timer();
 
       if (bumper == 0b10000000) {
-	USART_putstring("s003FFFFJIIRI0");
+	USART_putstring(String2);
       }
 
       switch (bumper) {
