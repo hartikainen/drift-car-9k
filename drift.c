@@ -57,10 +57,11 @@ void USART_putstring(char* StringPtr) {
     USART_send(*StringPtr);
     StringPtr++;
   }
+  PORTC = 0;
 }
 
 void USART_send(unsigned char data) {
-  while( !(UCSR1A & (1 << TXC1)) );
+  while( !(UCSR1A & (1 << UDRE1)) );
   UDR1 = data;
 }
 
@@ -106,6 +107,15 @@ int main(void)
   //  sbi(DDRB, 0);
   //  cbi(PORTB, 0);
   USART_Init(MYUBRR);
+  PORTC = 0;
+
+  _delay_ms(5000);
+  USART_send("U");
+  _delay_ms(2000);
+  char jiiri = USART_receive();
+  if (jiiri == 0x06) {
+    PORTC |= _BV(PC0) | _BV(PC1);
+  }
   
   setup_bumper_wheel_timer();
   sei();
@@ -119,9 +129,8 @@ int main(void)
       steering_locked = 1;
       reset_timer();
 
-      if (bumper > 0) {
-	USART_send("s");
-	//	USART_putstring(String);
+      if (bumper == 0b10000000) {
+	USART_putstring("s003FFFFJIIRI0");
       }
 
       switch (bumper) {
