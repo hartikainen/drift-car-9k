@@ -1,17 +1,13 @@
-#include <inttypes.h> /* definitions for uint8_t and others */
-#include <avr/io.h>   /* definitions for all PORT* and other registers. You absolutely will need this one */
+#include <inttypes.h>
+#include <avr/io.h>
 #include <avr/interrupt.h>
-
 #include <avr/delay.h>
+
+#include "output.h"
 
 #define BUMPER_PORT PORTA
 #define BUMPER_DDR DDRA
 #define BUMPER_PIN PINA
-
-// DEFINITIONS FOR THE DISPLAY
-#define BAUD 9600
-#define FOSC 1843200 // f_{OSC}, e.g. the clock speed, this might be available in F_CPU?
-#define MYUBRR (F_CPU/(16UL*BAUD) - 1)
 
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
@@ -39,36 +35,6 @@ void setup_tachometer(void) {
 
 void setup_ddr(void) {
   BUMPER_DDR = 0;
-}
-
-// Straight from the [datasheet, p. 211]
-void USART_Init(unsigned int ubrr) {
-  /* Set baud rate */
-  UBRR1H = (unsigned char) (ubrr>>8);
-  UBRR1L = (unsigned char) ubrr;
-  /* Enable receiver and transmitter */
-  UCSR1B |= (1<<RXEN1) | (1<<TXEN1);
-  /* Set frame format: 8 data bits, no parity, 1 stop bit */
-  UCSR1C |= (1<<UCSZ10) | (1<<UCSZ11);
-}
-
-void USART_putstring(char *StringPtr) {
-  while(*StringPtr != '\0') {
-    USART_send(*StringPtr++);
-  }
-}
-
-void USART_send(unsigned char data) {
-  while( !(UCSR1A & (1 << UDRE1)) );
-  UDR1 = data;
-}
-
-unsigned char USART_receive(void) {
-  while( !(UCSR1A & (1 << RXC1)) ) {
-    _delay_ms(100);
-    PINC = (1 << PC0) | (1 << PC1);
-  }
-  return UDR1;
 }
 
 void reset_timer(void) {
@@ -102,11 +68,11 @@ int main(void)
 
   setup_ddr();
 
-  USART_Init(MYUBRR);
+  USART_init(MYUBRR);
   PORTC = 0;
 
   _delay_ms(2000);
-  USART_send('U');
+  USART_transmit('U');
   _delay_ms(2000);
   char jiiri = USART_receive();
   if (jiiri) {
