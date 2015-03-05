@@ -13,7 +13,6 @@
 #define FOSC 1843200 // f_{OSC}, e.g. the clock speed, this might be available in F_CPU?
 #define MYUBRR (FOSC/16/BAUD-1)
 
-<<<<<<< HEAD
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
   DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
@@ -94,7 +93,7 @@ int main(void)
 {
   uint8_t bumper;
 
-  setup_motor_pwm(140);
+  //  setup_motor_pwm(140);
   setup_leds();
   setup_tachometer();
 
