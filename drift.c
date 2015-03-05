@@ -61,13 +61,13 @@ void USART_putstring(char* StringPtr) {
 }
 
 void USART_send(unsigned char data) {
-  while( !(UCSR1A & (1 << UDRE1)) );
-  UDR0 = data;
+  while( !(UCSR1A & (1 << TXC1)) );
+  UDR1 = data;
 }
 
 unsigned char USART_receive(void) {
-  while(!(UCSR1A & (1<<RXC1)));
-  return UDR0;
+  while( !(UCSR1A & (1<<RXC1)) );
+  return UDR1;
 }
 
 void reset_timer(void) {
