@@ -27,9 +27,8 @@ void setup_leds(void) {
 
 void setup_tachometer(void) {
   DDRL &= ~(1<<PL2);
-  TCCR5B |= 1 << CS50 | 1 << ICES5;
-  TIFR5 = 1<< ICF5;
-  TIMSK5 |= (1 << ICIE5);
+  TCCR5B |= 1 << CS51 | 1 << CS52;
+  OCR5A = 10;
 }
 
 void setup_ddr(void) {
