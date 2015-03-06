@@ -30,10 +30,6 @@ void setup_tachometer(void) {
   TIMSK5 |= (1 << ICIE5);
 }
 
-void reset_timer(void) {
-  TCNT2 = 0;
-}
-
 void setup_pwm(int val) {
   DDRB = 0xff;
   TCCR1A |= (1 << COM1A0) | (1 << COM1A1) | (1 << WGM11);
@@ -42,77 +38,52 @@ void setup_pwm(int val) {
   OCR1A = ICR1 - val;
 }
 
-int MIDDLE = 370;
-volatile int steering_locked = 0;
-int main(void)
+void display_example(void)
 {
-  uint8_t bumper;
+  // String2 is the command to be sent to the display.
+  // See the 'Draw “String” of ASCII Text (text format)'
+  // -function in the display command set reference.
   char String2[] = {'s', 0x1, 0x1, 0x3, 0xFF, 0xFF, 't', 'e', 's', 't', 'i', 0x00};
 
+  _delay_ms(2000);
+  // Transmit the initial 'AutoBaud' command. This is done only once.
+  USART_transmit('U');
+
+  _delay_ms(2000);
+
+  char jiiri = USART_receive();
+  // If the display answers with ACK
+  if (jiiri == 0x06) {
+    jiiri = 0x00;
+    PORTC |= _BV(PC0) | _BV(PC1);
+
+    USART_putstring(String2);
+    USART_transmit(0x00);
+
+    jiiri = USART_receive();
+    if (jiiri) {
+      PORTC &= ~_BV(PC1);
+    }
+  }
+}
+
+int main(void)
+{
   //  setup_motor_pwm(140);
   setup_leds();
   setup_tachometer();
-
   setup_bumper_ddr();
+  setup_bumper_timer();
 
   USART_init(MYUBRR);
   PORTC = 0;
 
-  _delay_ms(2000);
-  USART_transmit('U');
-  _delay_ms(2000);
-  char jiiri = USART_receive();
-  if (jiiri == 0x06) {
-    PORTC |= _BV(PC0) | _BV(PC1);
-    jiiri = 0x00;
-  }
-  
-  setup_bumper_wheel_timer();
+  display_example();
+
   sei();
+
   for(;;) {
-    bumper = ~BUMPER_PIN;
-    if (!steering_locked) {
-      steering_locked = 1;
-      reset_timer();
-
-      if (bumper == 0b10000000) {
-        USART_putstring(String2);
-        USART_transmit(0x00);
-        jiiri = USART_receive();
-        if (jiiri) {
-          PORTC &= ~_BV(PC1);
-        }
-      }
-
-      switch (bumper) {
-        case 0b00000001:
-          setup_pwm(MIDDLE - 40);
-          break;
-        case 0b00000010:
-          setup_pwm(MIDDLE - 30);
-          break;
-        case 0b00000100:
-          setup_pwm(MIDDLE - 20);
-          break;
-        case 0b00001000:
-          setup_pwm(MIDDLE - 10);
-          break;
-        case 0b00010000:
-          setup_pwm(MIDDLE + 10);
-          break;
-        case 0b00100000:
-          setup_pwm(MIDDLE + 20);
-          break;
-        case 0b01000000:
-          setup_pwm(MIDDLE + 30);
-          break;
-        case 0b10000000:
-          setup_pwm(MIDDLE + 40);
-          break;
-        default:
-          setup_pwm(MIDDLE);
-      }
-    }
+    read_bumper_turn_wheels();
   }
 }
 
@@ -121,8 +92,7 @@ volatile int timer_counter = 0;
 ISR(TIMER2_COMPA_vect) {
   if (timer_counter++ > LOOP_COUNT) {
     timer_counter = 0;
-    steering_locked = 0;
-    TCCR1A &= ~_BV(COM1A1);
+    release_steering();
   }
 }
 
