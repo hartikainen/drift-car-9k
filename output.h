@@ -8,5 +8,5 @@ void USART_transmit(unsigned char data);
 unsigned char USART_receive(void);
 
 void output_clear(void);
-void output_string_append(void);
-
+void output_string(void);
+void output_set_opaque_text(void);

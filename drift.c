@@ -78,6 +78,7 @@ int main(void)
   USART_init(MYUBRR);
   PORTC = 0;
 
+  output_set_opaque_text();
   display_example();
 
   sei();
