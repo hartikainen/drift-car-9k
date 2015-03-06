@@ -76,12 +76,12 @@ int main(void)
       reset_timer();
 
       if (bumper == 0b10000000) {
-	USART_putstring(String2);
-	USART_transmit(0x00);
-	jiiri = USART_receive();
-	if (jiiri) {
-	  PORTC &= ~_BV(PC1);
-	}
+        USART_putstring(String2);
+        USART_transmit(0x00);
+        jiiri = USART_receive();
+        if (jiiri) {
+          PORTC &= ~_BV(PC1);
+        }
       }
 
       switch (bumper) {
