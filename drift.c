@@ -1,12 +1,10 @@
-#include <inttypes.h> /* definitions for uint8_t and others */
-#include <avr/io.h>   /* definitions for all PORT* and other registers. You absolutely will need this one */
+#include <inttypes.h>
+#include <avr/io.h>
 #include <avr/interrupt.h>
-
 #include <avr/delay.h>
 
-#define BUMPER_PORT PORTA
-#define BUMPER_DDR DDRA
-#define BUMPER_PIN PINA
+#include "output.h"
+#include "bumper.h"
 
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
@@ -31,20 +29,6 @@ void setup_tachometer(void) {
   OCR5A = 10;
 }
 
-void setup_ddr(void) {
-  BUMPER_DDR = 0;
-}
-
-void reset_timer(void) {
-  TCNT2 = 0;
-}
-
-void setup_bumper_wheel_timer(void) {
-  TCCR2B |= (1 << WGM22) | (1 << CS22) | (1 << CS21) | (1 << CS20);
-  TIMSK2 |= (1 << OCIE2A);
-  OCR2A = 0b11111111;
-}
-
 void setup_pwm(int val) {
   DDRB = 0xff;
   TCCR1A |= (1 << COM1A0) | (1 << COM1A1) | (1 << WGM11);
@@ -53,63 +37,71 @@ void setup_pwm(int val) {
   OCR1A = ICR1 - val;
 }
 
-int MIDDLE = 370;
-volatile int steering_locked = 0;
-int main(void) {
-  uint8_t bumper;
-  setup_motor_pwm(140);
-  setup_leds();
-  setup_tachometer();
-  setup_ddr();
-  setup_bumper_wheel_timer();
-  sei();
-  for(;;) {
-    bumper = ~BUMPER_PIN;
-    if (!steering_locked) {
-      steering_locked = 1;
-      reset_timer();
-      switch (bumper) {
-        case 0b00000001:
-          setup_pwm(MIDDLE - 40);
-          break;
-        case 0b00000010:
-          setup_pwm(MIDDLE - 30);
-          break;
-        case 0b00000100:
-          setup_pwm(MIDDLE - 20);
-          break;
-        case 0b00001000:
-          setup_pwm(MIDDLE - 10);
-          break;
-        case 0b00010000:
-          setup_pwm(MIDDLE + 10);
-          break;
-        case 0b00100000:
-          setup_pwm(MIDDLE + 20);
-          break;
-        case 0b01000000:
-          setup_pwm(MIDDLE + 30);
-          break;
-        case 0b10000000:
-          setup_pwm(MIDDLE + 40);
-          break;
-        default:
-          setup_pwm(MIDDLE);
-      }
+void display_example(void)
+{
+  // String2 is the command to be sent to the display.
+  // See the 'Draw “String” of ASCII Text (text format)'
+  // -function in the display command set reference.
+  char String2[] = {'s', 0x1, 0x1, 0x3, 0xFF, 0xFF, 't', 'e', 's', 't', 'i', 0x00};
+
+  _delay_ms(2000);
+  // Transmit the initial 'AutoBaud' command. This is done only once.
+  USART_transmit('U');
+
+  _delay_ms(2000);
+
+  char jiiri = USART_receive();
+  // If the display answers with ACK
+  if (jiiri == 0x06) {
+    jiiri = 0x00;
+    PORTC |= _BV(PC0) | _BV(PC1);
+
+    USART_putstring(String2);
+    USART_transmit(0x00);
+
+    jiiri = USART_receive();
+    if (jiiri) {
+      PORTC &= ~_BV(PC1);
     }
   }
 }
 
-int LOOP_COUNT = 50;
+int main(void)
+{
+  //  setup_motor_pwm(140);
+  setup_leds();
+  setup_tachometer();
+  setup_bumper_ddr();
+  setup_bumper_timer();
+
+  USART_init(MYUBRR);
+  PORTC = 0;
+
+  output_set_opaque_text();
+  display_example();
+
+  sei();
+
+  for(;;) {
+    read_bumper_turn_wheels();
+  }
+}
+
+int LOOP_COUNT = 10;
 volatile int timer_counter = 0;
 ISR(TIMER2_COMPA_vect) {
   if (timer_counter++ > LOOP_COUNT) {
     timer_counter = 0;
-    steering_locked = 0;
-    TCCR1A &= ~_BV(COM1A1);
+    release_steering();
   }
 }
+
 
 ISR(TIMER5_CAPT_vect) {
   PINC |= _BV(PC0);
 }
+
+/* THE DISPLAY STUFF,
+ * THESE SHOULD PROBABLY
+ * BE MOVED TO ANOTHER FILE
+ */
