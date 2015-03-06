@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <avr/delay.h>
 #include "output.h"
-
+#include <string.h>
 // Straight from the [datasheet, p. 211]
 void USART_init(unsigned int ubrr)
 {
@@ -35,8 +35,8 @@ unsigned char USART_receive(void)
 
 void output_set_opaque_text(void)
 {
-  char msg[] = {'O', 0x01};
-  USART_putstring(msg);
+  USART_transmit(0x4F);
+  USART_transmit(0x01);
 }
 
 void output_clear(void)
@@ -48,9 +48,10 @@ void output_clear(void)
 void output_string(char* string)
 {
   int length = 6 + strlen(string) + 1; // 6 for the initial command, 1 for the terminate char
-  char msg[length] = {'s', 0x1, 0x1, 0x3, 0xFF, 0xFF};
+  char msg[50] = {'s', 0x1, 0x1, 0x3, 0xFF, 0xFF};
   strcat(msg, string);
   strcat(msg, 0x00); // concat the terminate char
 
   USART_putstring(msg);
+  USART_transmit(0x00);
 }
