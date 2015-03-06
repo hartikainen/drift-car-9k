@@ -4,7 +4,7 @@
 TARGET := drift
 
 # List of source files to be build (seperated by space)
-SRC := drift.c output.c
+SRC := drift.c output.c bumper.c
 
 # On this course we will use arduino mega boards, so there is no need to change this
 BOARD := arduino_mega2560

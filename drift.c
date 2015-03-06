@@ -4,10 +4,7 @@
 #include <avr/delay.h>
 
 #include "output.h"
-
-#define BUMPER_PORT PORTA
-#define BUMPER_DDR DDRA
-#define BUMPER_PIN PINA
+#include "bumper.h"
 
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
@@ -33,18 +30,8 @@ void setup_tachometer(void) {
   TIMSK5 |= (1 << ICIE5);
 }
 
-void setup_ddr(void) {
-  BUMPER_DDR = 0;
-}
-
 void reset_timer(void) {
   TCNT2 = 0;
-}
-
-void setup_bumper_wheel_timer(void) {
-  TCCR2B |= (1 << WGM22) | (1 << CS22) | (1 << CS21) | (1 << CS20);
-  TIMSK2 |= (1 << OCIE2A);
-  OCR2A = 0b11111111;
 }
 
 void setup_pwm(int val) {
@@ -60,13 +47,13 @@ volatile int steering_locked = 0;
 int main(void)
 {
   uint8_t bumper;
-  char String2[] = {'B', 0xFF, 0xFF};
+  char String2[] = {'s', 0x1, 0x1, 0x3, 0xFF, 0xFF, 't', 'e', 's', 't', 'i', 0x00};
 
   //  setup_motor_pwm(140);
   setup_leds();
   setup_tachometer();
 
-  setup_ddr();
+  setup_bumper_ddr();
 
   USART_init(MYUBRR);
   PORTC = 0;
@@ -75,8 +62,9 @@ int main(void)
   USART_transmit('U');
   _delay_ms(2000);
   char jiiri = USART_receive();
-  if (jiiri) {
+  if (jiiri == 0x06) {
     PORTC |= _BV(PC0) | _BV(PC1);
+    jiiri = 0x00;
   }
   
   setup_bumper_wheel_timer();
@@ -89,6 +77,11 @@ int main(void)
 
       if (bumper == 0b10000000) {
 	USART_putstring(String2);
+	USART_transmit(0x00);
+	jiiri = USART_receive();
+	if (jiiri) {
+	  PORTC &= ~_BV(PC1);
+	}
       }
 
       switch (bumper) {
