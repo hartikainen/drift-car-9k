@@ -26,9 +26,8 @@ void setup_leds(void) {
 
 void setup_tachometer(void) {
   DDRL &= ~(1<<PL2);
-  TCCR5B |= 1 << CS50 | 1 << ICES5;
-  TIFR5 = 1<< ICF5;
-  TIMSK5 |= (1 << ICIE5);
+  TCCR5B |= 1 << CS51 | 1 << CS52;
+  OCR5A = 10;
 }
 
 void setup_pwm(int val) {
@@ -70,7 +69,7 @@ void display_example(void)
 
 int main(void)
 {
-  //  setup_motor_pwm(140);
+  setup_motor_pwm(140);
   setup_leds();
   setup_tachometer();
   setup_bumper_ddr();
@@ -100,10 +99,10 @@ ISR(TIMER2_COMPA_vect) {
     str_timer_counter = 0;
     release_steering();
   }
-  if (rpm_timer_counter > RPM_LOOP_COUNT) {
+  if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
-    char *rpmstr[10];
-    atoi(rpmstr, TCNT5, 10);
-    output_string();
+    char rpmstr[10];
+    itoa(TCNT5, rpmstr, 10);
+    output_string(rpmstr);
   }
 }
