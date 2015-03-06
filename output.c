@@ -3,7 +3,8 @@
 #include "output.h"
 
 // Straight from the [datasheet, p. 211]
-void USART_init(unsigned int ubrr) {
+void USART_init(unsigned int ubrr)
+{
   /* Set baud rate */
   UBRR1H = (unsigned char) (ubrr>>8);
   UBRR1L = (unsigned char) ubrr;
@@ -13,21 +14,32 @@ void USART_init(unsigned int ubrr) {
   UCSR1C |= (1<<UCSZ10) | (1<<UCSZ11);
 }
 
-void USART_putstring(char *str_ptr) {
+void USART_putstring(char *str_ptr)
+{
   while(*str_ptr != '\0') {
     USART_transmit(*str_ptr++);
   }
 }
 
-void USART_transmit(unsigned char data) {
+void USART_transmit(unsigned char data)
+{
   while( !(UCSR1A & (1 << UDRE1)) );
   UDR1 = data;
 }
 
-unsigned char USART_receive(void) {
-  while( !(UCSR1A & (1 << RXC1)) ) {
-    _delay_ms(100);
-    PINC = (1 << PC0) | (1 << PC1);
-  }
+unsigned char USART_receive(void)
+{
+  while( !(UCSR1A & (1 << RXC1)) );
   return UDR1;
+}
+
+void output_clear(void)
+{
+  char msg  = 'E';
+  USART_transmit(msg);
+}
+
+void output_string_append(void)
+{
+  
 }
