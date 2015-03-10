@@ -113,7 +113,7 @@ ISR(TIMER2_COMPA_vect) {
     itoa((TCNT5-last_rpm), rpmstr, 10);    // weird rpm when TCNT5 overflows
     last_rpm = TCNT5;
 
-    output_string(rpmstr);
+    output_string(rpmstr,1,1);
   }
 }
 
