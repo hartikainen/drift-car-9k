@@ -31,7 +31,6 @@ void setup_button()
 void setup_tachometer(void) {
   DDRL &= ~(1<<PL2);
   TCCR5B |= 1 << CS51 | 1 << CS52;
-  OCR5A = 10;
 }
 
 void setup_pwm(int val) {
@@ -100,12 +99,25 @@ int main(void)
   }
 }
 
-int LOOP_COUNT = 10;
-volatile int timer_counter = 0;
+#define STEERING_LOOP_COUNT 10
+#define RPM_LOOP_COUNT 50
+
+volatile char str_timer_counter = 0;
+volatile char rpm_timer_counter = 0;   // remove at least one counter
+volatile unsigned int last_rpm = 0;
+
 ISR(TIMER2_COMPA_vect) {
-  if (timer_counter++ > LOOP_COUNT) {
-    timer_counter = 0;
+  if (str_timer_counter++ > STEERING_LOOP_COUNT) {
+    str_timer_counter = 0;
     release_steering();
+  }
+  if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
+    rpm_timer_counter = 0;
+    char rpmstr[10];
+    itoa((TCNT5-last_rpm), rpmstr, 10);    // weird rpm when TCNT5 overflows
+    last_rpm = TCNT5;
+
+    output_string(rpmstr);
   }
 }
 
@@ -113,8 +125,3 @@ ISR(TIMER2_COMPA_vect) {
 ISR(TIMER5_CAPT_vect) {
   PINC |= _BV(PC0);
 }
-
-/* THE DISPLAY STUFF,
- * THESE SHOULD PROBABLY
- * BE MOVED TO ANOTHER FILE
- */
