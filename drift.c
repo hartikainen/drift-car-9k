@@ -27,7 +27,6 @@ void setup_leds(void) {
 void setup_tachometer(void) {
   DDRL &= ~(1<<PL2);
   TCCR5B |= 1 << CS51 | 1 << CS52;
-  OCR5A = 10;
 }
 
 void setup_pwm(int val) {
@@ -69,7 +68,7 @@ void display_example(void)
 
 int main(void)
 {
-  setup_motor_pwm(140);
+  setup_motor_pwm(240);
   setup_leds();
   setup_tachometer();
   setup_bumper_ddr();
@@ -86,14 +85,19 @@ int main(void)
 
   for(;;) {
     read_bumper_turn_wheels();
+    _delay_ms(10000);
+    _delay_ms(10000);
+    setup_motor_pwm(0);
   }
 }
 
 #define STEERING_LOOP_COUNT 10
-#define RPM_LOOP_COUNT 100
+#define RPM_LOOP_COUNT 50
 
 volatile char str_timer_counter = 0;
 volatile char rpm_timer_counter = 0;   // remove at least one counter
+volatile unsigned int last_rpm = 0;
+
 ISR(TIMER2_COMPA_vect) {
   if (str_timer_counter++ > STEERING_LOOP_COUNT) {
     str_timer_counter = 0;
@@ -102,7 +106,9 @@ ISR(TIMER2_COMPA_vect) {
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
     char rpmstr[10];
-    itoa(TCNT5, rpmstr, 10);
+    itoa((TCNT5-last_rpm), rpmstr, 10);    // weird rpm when TCNT5 overflows
+    last_rpm = TCNT5;
+
     output_string(rpmstr);
   }
 }
