@@ -117,7 +117,3 @@ ISR(TIMER2_COMPA_vect) {
   }
 }
 
-
-ISR(TIMER5_CAPT_vect) {
-  PINC |= _BV(PC0);
-}
