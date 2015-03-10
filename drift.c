@@ -23,7 +23,7 @@ void setup_leds(void) {
   DDRC = 0xff;
 }
 
-void setup_button()
+void setup_button(void)
 {
   DDRE = 0x0; // 0 or FF?
 }
@@ -72,7 +72,7 @@ void display_example(void)
 
 int main(void)
 {
-  //  setup_motor_pwm(140);
+  setup_motor_pwm(140);
   setup_leds();
   setup_tachometer();
   setup_bumper_ddr();
@@ -83,18 +83,14 @@ int main(void)
 
   display_example();
   output_set_opaque_text();
-
+  setup_button();
 
   sei();
   char jiiri[20];
   for(;;) {
-    if ((PINE == 0b00110011) ){//== 0b00010000) {
-      output_string(sprintf("asdasdo: %s", itoa(PINE, jiiri, 2)));
-      //      output_string("toimii");
-    } else {
-      output_string(sprintf("jiiri2: %s !", itoa(PINE, jiiri, 2)));
+    if (!(PINE & 1 << PE5)) {
+      setup_motor_pwm(0);
     }
-
     read_bumper_turn_wheels();
   }
 }
