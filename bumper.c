@@ -7,7 +7,6 @@
 volatile int steering_locked = 0;
 int bumper_int = 0;
 int pide, pwm_val;
-float y;
 uint8_t bumper;
 
 void setup_pwm(int val) {
@@ -100,17 +99,22 @@ int moving_avg( int x )
   // doesn't handle bits like 0b001100000 correctly
   static float old[] = {0.0,0.0,0.0};
   float y;
+  /* if (x == 0) */
+  /* { */
+  /*   // We sampled 0b00000000 but the last sample was not 0b10000000, 0b00000001 or 0b00000000 pad with last sample. */
+  /*   if (old[2] > 1.0 && old[2] < 7.0) */
+  /*   { */
+  /*     y = old[2]; */
+  /*   } */
+  /*   else */
+  /*   { */
+  /*     y = 0.0; */
+  /*   } */
+  /* } */
+
   if (x == 0)
   {
-    // We sampled 0b00000000 but the last sample was not 0b10000000, 0b00000001 or 0b00000000 pad with last sample.
-    if (old[2] > 1.0 && old[2] < 7.0)
-    {
-      y = old[2];
-    }
-    else
-    {
-      y = 0.0;
-    }
+    y = x;
   }
   else
   {
@@ -126,7 +130,7 @@ int moving_avg( int x )
   }
 
   // calculate moving average over 4 measurements
-  float new_value = (old[0]+old[1]+old[2]+(float)y)/4;
+  float new_value = (old[0]+old[1]+old[2]+y)/4;
   old[0] = old[1];
   old[1] = old[2];
   old[2] = y;
@@ -141,7 +145,9 @@ int moving_avg( int x )
 
 void read_bumper_turn_wheels(void)
 {
-  bumper = ~BUMPER_PIN;
+  float y;
+  uint8_t bp = ~BUMPER_PIN;
+  bumper = moving_avg(bp);
   switch (bumper) {
   case 0b00000001:
     bumper_int = -4;
