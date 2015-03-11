@@ -39,8 +39,8 @@ void turn_wheels(float direction) {
 }
 
 #define Kp 1
-#define Ki 0.1
-#define Kd 5
+#define Ki 0.01
+#define Kd 1
 #define TARGET 0.0
 
 float integral_value = 0;
