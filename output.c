@@ -50,8 +50,9 @@ void output_string(char* string, char x, char y)
   int length = 6 + strlen(string) + 1; // 6 for the initial command, 1 for the terminate char
   char msg[50] = {'s', x, y, 0x3, 0xFF, 0xFF};
   strcat(msg, string);
-  strcat(msg, 0x00); // concat the terminate char
+  //  strcat(msg, "\0"); // concat the terminate char
 
   USART_putstring(msg);
+  USART_transmit(0x00);
   USART_transmit(0x00);
 }

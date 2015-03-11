@@ -18,7 +18,7 @@ void setup_motor_pwm(int pwmoffset) {
 
 void setup_timer2(void)
 {
-  TCCR2B |= (1 << WGM22) | (1 << CS22) | (1 << CS21) | (1 << CS20);
+  TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20);
   TIMSK2 |= (1 << OCIE2A);
   OCR2A = 0b11111111;
 }
@@ -41,26 +41,18 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
-void setup_pwm(int val) {
-  DDRB = 0xff;
-  TCCR1A |= (1 << COM1A0) | (1 << COM1A1) | (1 << WGM11);
-  TCCR1B |= (1 << CS10) | (1 << CS11) | (1 << WGM12) | (1 << WGM13);
-  ICR1 = 4999;
-  OCR1A = ICR1 - val;
-}
-
 void display_example(void)
 {
   // String2 is the command to be sent to the display.
   // See the 'Draw “String” of ASCII Text (text format)'
   // -function in the display command set reference.
   char String2[] = {'s', 0x1, 0x1, 0x3, 0xFF, 0xFF, 't', 'e', 's', 't', 'i', 0x00};
+  _delay_ms(500);
 
-  _delay_ms(2000);
   // Transmit the initial 'AutoBaud' command. This is done only once.
   USART_transmit('U');
 
-  _delay_ms(2000);
+  _delay_ms(100);
 
   char jiiri = USART_receive();
   // If the display answers with ACK
@@ -80,7 +72,7 @@ void display_example(void)
 
 int main(void)
 {
-  setup_motor_pwm(140);
+
   setup_leds();
   setup_tachometer();
   setup_bumper_ddr();
@@ -95,9 +87,12 @@ int main(void)
 
   sei();
   char jiiri[20];
+
+  setup_motor_pwm(200);
   for(;;) {
     if (!(PINE & 1 << PE5)) {
       setup_motor_pwm(0);
+      //      reset_PID_stuff();
     }
   }
 }
@@ -110,14 +105,17 @@ volatile char rpm_timer_counter = 0;   // remove at least one counter
 volatile unsigned int last_rpm = 0;
 
 ISR(TIMER2_COMPA_vect) {
-  read_bumper_turn_wheels();
+  PORTC = ~PORTC; // TEST, blink the leds
+  if (str_timer_counter++ > STEERING_LOOP_COUNT) {
+    str_timer_counter = 0;
+    read_bumper_turn_wheels();
+  }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
     char rpmstr[10];
     itoa((TCNT5-last_rpm), rpmstr, 10);    // weird rpm when TCNT5 overflows
     last_rpm = TCNT5;
 
-    output_string(rpmstr,1,1);
+    //    output_string(rpmstr,1,1);
   }
 }
-
