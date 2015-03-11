@@ -5,6 +5,7 @@
 
 #include "output.h"
 #include "bumper.h"
+#include "PID.h"
 
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
@@ -13,6 +14,13 @@ void setup_motor_pwm(int pwmoffset) {
   TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
   ICR4 = 800; // 20kHz without prescaler
   OCR4A = ICR4 - pwmoffset;
+}
+
+void setup_timer2(void)
+{
+  TCCR2B |= (1 << WGM22) | (1 << CS22) | (1 << CS21) | (1 << CS20);
+  TIMSK2 |= (1 << OCIE2A);
+  OCR2A = 0b11111111;
 }
 
 void disable_motor_pwm(void) {
@@ -76,7 +84,7 @@ int main(void)
   setup_leds();
   setup_tachometer();
   setup_bumper_ddr();
-  setup_bumper_timer();
+  setup_timer2();
 
   USART_init(MYUBRR);
   PORTC = 0;
@@ -91,11 +99,10 @@ int main(void)
     if (!(PINE & 1 << PE5)) {
       setup_motor_pwm(0);
     }
-    read_bumper_turn_wheels();
   }
 }
 
-#define STEERING_LOOP_COUNT 10
+#define STEERING_LOOP_COUNT 1
 #define RPM_LOOP_COUNT 50
 
 volatile char str_timer_counter = 0;
@@ -103,10 +110,7 @@ volatile char rpm_timer_counter = 0;   // remove at least one counter
 volatile unsigned int last_rpm = 0;
 
 ISR(TIMER2_COMPA_vect) {
-  if (str_timer_counter++ > STEERING_LOOP_COUNT) {
-    str_timer_counter = 0;
-    release_steering();
-  }
+  read_bumper_turn_wheels();
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
     char rpmstr[10];
