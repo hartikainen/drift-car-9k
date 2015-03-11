@@ -38,7 +38,7 @@ void turn_wheels(float direction) {
   setup_pwm(pwm_val);
 }
 
-#define Kp 0.2
+#define Kp 1
 #define Ki 0.1
 #define Kd 5
 #define TARGET 0.0
