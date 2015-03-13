@@ -58,6 +58,10 @@ void display_example(void)
   }
 }
 
+
+static volatile char btn_delay = 0;
+
+volatile int btn_timer_counter = 0;
 int main(void)
 {
 
@@ -75,10 +79,12 @@ int main(void)
 
   sei();
   char jiiri[20];
-
   for(;;) {
-    if (!(PINE & 1 << PE5)) {
+   
+    if (!(PINE & 1 << PE5) && btn_delay == 0) {
       toggle_motor();
+      btn_delay = 1;
+      btn_timer_counter = 0;
       //      reset_PID_stuff();
     }
   }
@@ -101,5 +107,11 @@ ISR(TIMER2_COMPA_vect) {
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     update_acceleration(60);
     rpm_timer_counter = 0;
+  }
+  if (btn_delay == 1){
+    if (btn_timer_counter++ > BTN_LOOP_COUNT) {
+      btn_delay = 0;
+      PORTC = ~PORTC;
+    }
   }
 }
