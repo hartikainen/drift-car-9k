@@ -2,10 +2,13 @@
 #define BUMPER_DDR DDRA
 #define BUMPER_PIN PINA
 
-#define WHEELS_MIDDLE 370
+#define WHEELS_MIN 295
+#define WHEELS_MAX 455
+#define WHEELS_STEP ((WHEELS_MAX - WHEELS_MIN) / 8)
+#define WHEELS_MIDDLE ((WHEELS_MAX + WHEELS_MIN) / 2)
 
 void setup_bumper_ddr(void);
-void setup_bumper_timer(void);
-void reset_bumper_timer(void);
 void read_bumper_turn_wheels(void);
-void release_steering(void);
+void turn_wheels(float direction);
+void setup_pwm(int val);
+void reset_PID_stuff(void);

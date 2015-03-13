@@ -1,0 +1,3 @@
+
+int u(int time) {
+}
