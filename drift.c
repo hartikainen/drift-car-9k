@@ -98,7 +98,7 @@ int main(void)
 ISR(TIMER2_COMPA_vect) {
   if (str_timer_counter++ > STEERING_LOOP_COUNT) {
     str_timer_counter = 0;
-    bumper = read_bumper_turn_wheels();
+    read_bumper_turn_wheels();
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
