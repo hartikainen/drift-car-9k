@@ -41,35 +41,6 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
-void display_example(void)
-{
-  // String2 is the command to be sent to the display.
-  // See the 'Draw “String” of ASCII Text (text format)'
-  // -function in the display command set reference.
-  char String2[] = {'s', 0x1, 0x1, 0x3, 0xFF, 0xFF, 't', 'e', 's', 't', 'i', 0x00};
-  _delay_ms(500);
-
-  // Transmit the initial 'AutoBaud' command. This is done only once.
-  USART_transmit('U');
-
-  _delay_ms(100);
-
-  char jiiri = USART_receive();
-  // If the display answers with ACK
-  if (jiiri == 0x06) {
-    jiiri = 0x00;
-    PORTC |= _BV(PC0) | _BV(PC1);
-
-    USART_putstring(String2);
-    USART_transmit(0x00);
-
-    jiiri = USART_receive();
-    if (jiiri) {
-      PORTC &= ~_BV(PC1);
-    }
-  }
-}
-
 int main(void)
 {
 
@@ -81,8 +52,6 @@ int main(void)
   USART_init(MYUBRR);
   PORTC = 0;
 
-  display_example();
-  output_set_opaque_text();
   setup_button();
 
   sei();
@@ -112,10 +81,10 @@ ISR(TIMER2_COMPA_vect) {
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
-    char rpmstr[10];
-    itoa((TCNT5-last_rpm), rpmstr, 10);    // weird rpm when TCNT5 overflows
+    char buf[15] = "RPM: ";
+    itoa((TCNT5-last_rpm), buf + 5, 10);    // weird rpm when TCNT5 overflows
     last_rpm = TCNT5;
-
-    //    output_string(rpmstr,1,1);
+    output_string(buf,1,2);
   }
 }
+
