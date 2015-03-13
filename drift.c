@@ -99,7 +99,7 @@ ISR(TIMER2_COMPA_vect) {
 
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
-    update_acceleration(100);
+    update_acceleration(60);
     rpm_timer_counter = 0;
   }
 }

@@ -21,10 +21,10 @@ void toggle_motor() {
   motor_on = !motor_on;
 }
 
-#define Kp 1.0
-#define Ki 1.0
-#define Kd 0.0
-#define MAXPWM 200.0
+#define Kp 3.0
+#define Ki 0.5
+#define Kd 1.0
+#define MAXPWM 300.0
 
 static unsigned int rpm = 0;
 int count = 0;
@@ -33,9 +33,7 @@ void update_acceleration(int target) {
   static float integral_value = 0.0;
   static float derivative_value = 0.0;
   static unsigned int previousTCNT = 0;
-  static int previous = 0;
-  float tf = ((float)target/100.0) * MAXPWM;
-
+  float tf = (float)target;
   float pwm = 0.0;
   if (TCNT5 < previousTCNT) {
     previousTCNT = 65536 - previousTCNT;
@@ -49,14 +47,14 @@ void update_acceleration(int target) {
     previousTCNT = TCNT5;
     if (motor_on) {
       integral_value += tf - rpm; 
-      derivative_value = tf - previous;
+      derivative_value = tf - rpm;
       pwm = (Kp * (float)tf) + (Ki * integral_value) + (Kd * derivative_value);
       if (pwm > MAXPWM) {
         pwm = MAXPWM;
       }
-      setup_motor_pwm((int)pwm); 
+      setup_motor_pwm((int)pwm);
     } 
-    sprintf(str, "rpm? %d %d %d    ", rpm, (int)pwm, (int)integral_value);
+    sprintf(str, "%d  %d  %d  %d    ", rpm, (int)pwm, (int)integral_value, (int)derivative_value);
     output_string(str, 1, 5);
   }
   if (!motor_on) {
