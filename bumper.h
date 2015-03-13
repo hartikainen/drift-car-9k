@@ -8,7 +8,7 @@
 #define WHEELS_MIDDLE ((WHEELS_MAX + WHEELS_MIN) / 2)
 
 void setup_bumper_ddr(void);
-void read_bumper_turn_wheels(void);
+int read_bumper_turn_wheels(void);
 void turn_wheels(float direction);
 void setup_pwm(int val);
 void reset_PID_stuff(void);

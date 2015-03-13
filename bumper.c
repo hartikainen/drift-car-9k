@@ -59,7 +59,7 @@ void reset_PID_stuff(void) {
 
   /* output_string(kistr,4,4); */
 }
-void read_bumper_turn_wheels(void)
+int read_bumper_turn_wheels(void)
 {
   float y;
   uint8_t bp = ~BUMPER_PIN;
@@ -116,5 +116,6 @@ void read_bumper_turn_wheels(void)
   y = (Kp * pide) + (Ki * integral_value) + (Kd * derivate_value);
 
   turn_wheels(y);
+  return bumper_int;
 }
 
