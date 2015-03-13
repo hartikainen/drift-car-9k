@@ -5,11 +5,6 @@
 #include "bumper.h"
 #include "output.h"
 
-volatile int steering_locked = 0;
-int bumper_int = 0;
-int pwm_val;
-uint8_t bumper;
-
 void setup_pwm(int val) {
   DDRB = 0xff;
   TCCR1A |= (1 << COM1A0) | (1 << COM1A1) | (1 << WGM11);
@@ -22,25 +17,9 @@ void setup_bumper_ddr(void)
 {
   BUMPER_DDR = 0;
 }
-
-void turn_wheels(int direction) {
-  //  pwm_val = (int) (WHEELS_MIDDLE + (WHEELS_STEP * direction));
-  pwm_val = direction;
-  if (pwm_val > WHEELS_MAX) pwm_val = WHEELS_MAX;
-  if (pwm_val < WHEELS_MIN) pwm_val = WHEELS_MIN;
-
-  /* if (counter++ > 15) { */
-  /*   counter = 0; */
-  /*   char bumpstr[10]; */
-  /*   itoa((int)pwm_val, bumpstr, 10); */
-  /*   output_string(bumpstr, 2, 2); */
-  /* } */
-
-  setup_pwm(pwm_val);
-}
-
-#define Kp 0.01
-#define Ki 0.002
+  
+#define Kp 0.8
+#define Ki 0.001
 #define Kd 0
 
 float integral_value = 0;
@@ -55,14 +34,12 @@ void reset_PID_stuff(void) {
   output_string(fakekistr,1,1);
 }
 
-volatile int current_value = WHEELS_MIDDLE;
-volatile int counter_strike;
-void read_bumper_turn_wheels(void)
+/* Returns the "rough" direction in the pwm units, */
+/* between about 300 and 460 */
+int bumper_int = 0;
+int target_from_bumper_led(uint8_t bumper_byte)
 {
-  int target_value, pide = 0, y;
-  uint8_t bp = ~BUMPER_PIN;
-  bumper = bp;
-  switch (bumper) {
+  switch (bumper_byte) {
   case 0b00000001: // OIKEA
     bumper_int = -4;
     break;
@@ -86,22 +63,34 @@ void read_bumper_turn_wheels(void)
     break;
   case 0b10000000: // VASEN, WHEELS_MAXia vastava
     bumper_int = 4;
-    PORTC = ~PORTC; // TEST, blink the leds
     break;
   default:
     bumper_int = bumper_int;
   }
+  return (int)WHEELS_MIDDLE + ((int)WHEELS_STEP * bumper_int);
+}
 
-  target_value = (int)WHEELS_MIDDLE + ((int)WHEELS_STEP * bumper_int);
+volatile int current_value = WHEELS_MIDDLE;
+volatile int counter_strike;
+void read_bumper_turn_wheels(void)
+{
+  int target_value, y,  pide = 0;
+  uint8_t bp = ~BUMPER_PIN;
+  target_value = target_from_bumper_led(bp);
+
   pide = (target_value - current_value);
 
   integral_value += pide;
   derivate_value = pide - previous;
   previous = pide;
 
-  y = (int)(Kp * (float)pide) + (int)(fake_Ki * (float)integral_value) + (Kd * derivate_value);
-  current_value = (int)WHEELS_MIDDLE + y;
-  turn_wheels(current_value);
+  y = (int)(Kp * (float)pide) + (int)(Ki * (float)integral_value) + (Kd * (float)derivate_value);
+  current_value += y;//= (int)WHEELS_MIDDLE + y;
+  if (current_value > WHEELS_MAX) current_value = WHEELS_MAX;
+  if (current_value < WHEELS_MIN) current_value = WHEELS_MIN;
+
+  // Turn the wheels.
+  setup_pwm(current_value);
 
   /* if (counter_strike++ > 200) { */
   /*   counter_strike = 0; */

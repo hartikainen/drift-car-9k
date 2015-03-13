@@ -12,3 +12,5 @@ void read_bumper_turn_wheels(void);
 void turn_wheels(int direction);
 void setup_pwm(int val);
 void reset_PID_stuff(void);
+int target_from_bumper_led(uint8_t bumper_byte);
+
