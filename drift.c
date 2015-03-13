@@ -12,7 +12,7 @@
 #define SCREEN_LOOP_COUNT 50
 #define STEERING_LOOP_COUNT 1
 #define RPM_LOOP_COUNT 50
-
+#define BTN_LOOP_COUNT 10000
 static volatile char str_timer_counter = 0;
 static volatile char rpm_timer_counter = 0;   // remove at least one counter
 static volatile unsigned int last_rpm = 0;
@@ -61,7 +61,6 @@ int main(void)
   char rpmbuf[20];
   char pwmbuf[20];
   int i = 0;
-  char jiiri[20];
   for(;;) {
    
     if (!(PINE & 1 << PE5) && btn_delay == 0) {
