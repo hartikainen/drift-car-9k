@@ -29,12 +29,22 @@ void toggle_motor() {
 static unsigned int rpm = 0;
 int count = 0;
 
+int get_rpm(void) {
+  return rpm;
+}
+
+static float pwm = 0.0;
+
+int get_pwm(void) {
+  return (int)pwm;
+}
+
 void update_acceleration(int target) {
   static float integral_value = 0.0;
   static float derivative_value = 0.0;
   static unsigned int previousTCNT = 0;
   float tf = (float)target;
-  float pwm = 0.0;
+
   if (TCNT5 < previousTCNT) {
     previousTCNT = 65536 - previousTCNT;
   }

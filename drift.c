@@ -9,6 +9,19 @@
 #include "PID.h"
 #include "stdio.h"
 
+#define SCREEN_LOOP_COUNT 50
+#define STEERING_LOOP_COUNT 1
+#define RPM_LOOP_COUNT 50
+
+static volatile char str_timer_counter = 0;
+static volatile char rpm_timer_counter = 0;   // remove at least one counter
+static volatile unsigned int last_rpm = 0;
+static volatile unsigned int rpm = 0;
+static volatile int bumper = 0;
+static volatile int motor_pwm = 0;
+static volatile char btn_delay = 0;
+static volatile int btn_timer_counter = 0;
+
 void setup_timer2(void)
 {
   TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20);
@@ -30,19 +43,6 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
-volatile char str_timer_counter = 0;
-volatile char rpm_timer_counter = 0;   // remove at least one counter
-volatile unsigned int last_rpm = 0;
-volatile unsigned int rpm = 0;
-volatile int bumper = 0;
-volatile int motor_pwm = 0;
-const int STARTING_SPEED = 160;
-const int SCREEN_LOOP_COUNT = 50;
-
-
-static volatile char btn_delay = 0;
-
-volatile int btn_timer_counter = 0;
 int main(void)
 {
 
@@ -71,13 +71,13 @@ int main(void)
     }
 
     if (i++ == SCREEN_LOOP_COUNT) {
-      sprintf(rpmbuf, "RPM:     %d  ", rpm);
+      sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
       output_string(rpmbuf,1,3);
 
       sprintf(bmpbuf, "BUMPER:  %d  ", bumper);
       output_string(bmpbuf, 1, 4);
 
-      sprintf(pwmbuf, "PWM:     %d  ", motor_pwm);
+      sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
       output_string(pwmbuf, 1, 5);
 
       i = 0;
@@ -85,16 +85,13 @@ int main(void)
   }
 }
 
-#define STEERING_LOOP_COUNT 1
-#define RPM_LOOP_COUNT 50
-
 ISR(TIMER2_COMPA_vect) {
   if (str_timer_counter++ > STEERING_LOOP_COUNT) {
     str_timer_counter = 0;
     read_bumper_turn_wheels();
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
-    update_acceleration(60);
+    update_acceleration(30);
   }
   if (btn_delay == 1){
     if (btn_timer_counter++ > BTN_LOOP_COUNT) {
