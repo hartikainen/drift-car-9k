@@ -96,13 +96,10 @@ int main(void)
 #define RPM_LOOP_COUNT 50
 
 ISR(TIMER2_COMPA_vect) {
-  //PORTC = ~PORTC; // TEST, blink the leds
-
   if (str_timer_counter++ > STEERING_LOOP_COUNT) {
     str_timer_counter = 0;
     bumper = read_bumper_turn_wheels();
   }
-  
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
     rpm = TCNT5-last_rpm; // weird rpm when TCNT5 overflows
