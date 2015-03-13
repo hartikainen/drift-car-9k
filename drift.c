@@ -47,6 +47,8 @@ volatile char rpm_timer_counter = 0;   // remove at least one counter
 volatile unsigned int last_rpm = 0;
 volatile unsigned int rpm = 0;
 volatile int bumper = 0;
+volatile int motor_pwm = 0;
+const int STARTING_SPEED = 160;
 
 int main(void)
 {
@@ -65,11 +67,13 @@ int main(void)
 
   char bmpbuf[20];
   char rpmbuf[20];
+  char pwmbuf[20];
 
-  setup_motor_pwm(200);
+  setup_motor_pwm(STARTING_SPEED);
   for(;;) {
     if (!(PINE & 1 << PE5)) {
-      setup_motor_pwm(0);
+      motor_pwm = motor_pwm == 0 ? STARTING_SPEED : 0;
+      setup_motor_pwm(motor_pwm);
       //      reset_PID_stuff();
     }
     sprintf(rpmbuf, "RPM:     %d  ", rpm);
@@ -77,6 +81,9 @@ int main(void)
 
     sprintf(bmpbuf, "BUMPER:  %d  ", bumper);
     output_string(bmpbuf, 1, 4);
+
+    sprintf(pwmbuf, "PWM:     %d  ", motor_pwm);
+    output_string(pwmbuf, 1, 5);
   }
 }
 
