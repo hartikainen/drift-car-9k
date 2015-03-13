@@ -3,29 +3,17 @@
 #include <avr/interrupt.h>
 #include <avr/delay.h>
 
+#include "accelerate.h"
 #include "output.h"
 #include "bumper.h"
 #include "PID.h"
 #include "stdio.h"
-
-void setup_motor_pwm(int pwmoffset) {
-  PORTK |= 1 << PK0;
-  DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
-  TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
-  TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
-  ICR4 = 800; // 20kHz without prescaler
-  OCR4A = ICR4 - pwmoffset;
-}
 
 void setup_timer2(void)
 {
   TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20);
   TIMSK2 |= (1 << OCIE2A);
   OCR2A = 0b11111111;
-}
-
-void disable_motor_pwm(void) {
-  TCCR4A |= ~_BV(COM4A1);
 }
 
 void setup_leds(void) {
@@ -51,6 +39,10 @@ volatile int motor_pwm = 0;
 const int STARTING_SPEED = 160;
 const int SCREEN_LOOP_COUNT = 50;
 
+
+static volatile char btn_delay = 0;
+
+volatile int btn_timer_counter = 0;
 int main(void)
 {
 
@@ -65,16 +57,17 @@ int main(void)
   setup_button();
 
   sei();
-
   char bmpbuf[20];
   char rpmbuf[20];
   char pwmbuf[20];
   int i = 0;
+  char jiiri[20];
   for(;;) {
-    if (!(PINE & 1 << PE5)) {
-      motor_pwm = (motor_pwm == 0 ? STARTING_SPEED : 0);
-      setup_motor_pwm(motor_pwm);
-      //      reset_PID_stuff();
+   
+    if (!(PINE & 1 << PE5) && btn_delay == 0) {
+      toggle_motor();
+      btn_delay = 1;
+      btn_timer_counter = 0;
     }
 
     if (i++ == SCREEN_LOOP_COUNT) {
@@ -101,10 +94,13 @@ ISR(TIMER2_COMPA_vect) {
     read_bumper_turn_wheels();
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
-    rpm_timer_counter = 0;
-    rpm = TCNT5-last_rpm; // weird rpm when TCNT5 overflows
-
-    last_rpm = TCNT5;
+    update_acceleration(60);
+  }
+  if (btn_delay == 1){
+    if (btn_timer_counter++ > BTN_LOOP_COUNT) {
+      btn_delay = 0;
+      PORTC = ~PORTC;
+    }
   }
 }
 
