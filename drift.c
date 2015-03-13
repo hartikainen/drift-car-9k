@@ -6,6 +6,7 @@
 #include "output.h"
 #include "bumper.h"
 #include "PID.h"
+#include "stdio.h"
 
 void setup_motor_pwm(int pwmoffset) {
   PORTK |= 1 << PK0;
@@ -41,6 +42,12 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
+volatile char str_timer_counter = 0;
+volatile char rpm_timer_counter = 0;   // remove at least one counter
+volatile unsigned int last_rpm = 0;
+volatile unsigned int rpm = 0;
+volatile int bumper = 0;
+
 int main(void)
 {
 
@@ -55,7 +62,9 @@ int main(void)
   setup_button();
 
   sei();
-  char jiiri[20];
+
+  char bmpbuf[20];
+  char rpmbuf[20];
 
   setup_motor_pwm(200);
   for(;;) {
@@ -63,28 +72,30 @@ int main(void)
       setup_motor_pwm(0);
       //      reset_PID_stuff();
     }
+    sprintf(rpmbuf, "RPM:     %d  ", rpm);
+    output_string(rpmbuf,1,3);
+
+    sprintf(bmpbuf, "BUMPER:  %d  ", bumper);
+    output_string(bmpbuf, 1, 4);
   }
 }
 
 #define STEERING_LOOP_COUNT 1
 #define RPM_LOOP_COUNT 50
 
-volatile char str_timer_counter = 0;
-volatile char rpm_timer_counter = 0;   // remove at least one counter
-volatile unsigned int last_rpm = 0;
-
 ISR(TIMER2_COMPA_vect) {
   PORTC = ~PORTC; // TEST, blink the leds
+
   if (str_timer_counter++ > STEERING_LOOP_COUNT) {
     str_timer_counter = 0;
-    read_bumper_turn_wheels();
+    bumper = read_bumper_turn_wheels();
   }
+  
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     rpm_timer_counter = 0;
-    char buf[15] = "RPM: ";
-    itoa((TCNT5-last_rpm), buf + 5, 10);    // weird rpm when TCNT5 overflows
+    rpm = TCNT5-last_rpm; // weird rpm when TCNT5 overflows
+
     last_rpm = TCNT5;
-    output_string(buf,1,2);
   }
 }
 
