@@ -1,5 +1,7 @@
 #include <avr/io.h>
+#include <stdio.h>
 #include "accelerate.h"
+#include "output.h"
 
 void disable_motor_pwm(void) {
   TCCR4A |= ~_BV(COM4A1);
@@ -20,15 +22,16 @@ void toggle_motor() {
 }
 
 #define Kp 1
-#define Ki 0
+#define Ki 0 
 #define Kd 0
 #define MAXPWM 200
 
 static unsigned int rpm = 0;
+int count = 0;
 
 void update_acceleration(int target) {
-  static float integral_value = 0;
-  static float derivative_value = 0;
+  static float integral_value = 0.0;
+  static float derivative_value = 0.0;
   static unsigned int previousTCNT = 0;
   static int previous = 0;
 
@@ -39,6 +42,14 @@ void update_acceleration(int target) {
     previousTCNT = 65536 - previousTCNT;
   }
   rpm = TCNT5 - previousTCNT;
+  if (count++ > 100)
+  {
+    char str[20];
+    count = 0;
+    sprintf(str, "rpm? %d %d", rpm, previousTCNT);
+    output_string(str, 1, 5);
+  }
+  previousTCNT = TCNT5; 
   if (motor_on) {
     integral_value += target - rpm; 
     derivative_value = target - previous;
