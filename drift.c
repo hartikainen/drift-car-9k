@@ -9,10 +9,10 @@
 #include "PID.h"
 #include "stdio.h"
 
-#define SCREEN_LOOP_COUNT 50
+#define SCREEN_LOOP_COUNT 10000
 #define STEERING_LOOP_COUNT 1
 #define RPM_LOOP_COUNT 50
-#define BTN_LOOP_COUNT 10000
+#define BTN_LOOP_COUNT 1000
 static volatile char str_timer_counter = 0;
 static volatile char rpm_timer_counter = 0;   // remove at least one counter
 static volatile unsigned int last_rpm = 0;
@@ -63,12 +63,6 @@ int main(void)
   int i = 0;
   for(;;) {
    
-    if (!(PINE & 1 << PE5) && btn_delay == 0) {
-      toggle_motor();
-      btn_delay = 1;
-      btn_timer_counter = 0;
-    }
-
     if (i++ == SCREEN_LOOP_COUNT) {
       sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
       output_string(rpmbuf,1,3);
@@ -98,5 +92,12 @@ ISR(TIMER2_COMPA_vect) {
       PORTC = ~PORTC;
     }
   }
+  if (!(PINE & 1 << PE5) && btn_delay == 0) {
+    toggle_motor();
+    btn_delay = 1;
+    btn_timer_counter = 0;
+  }
+
+
 }
 

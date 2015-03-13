@@ -64,8 +64,8 @@ void update_acceleration(int target) {
       }
       setup_motor_pwm((int)pwm);
     } 
-    sprintf(str, "%d  %d  %d  %d    ", rpm, (int)pwm, (int)integral_value, (int)derivative_value);
-    output_string(str, 1, 5);
+    //sprintf(str, "%d  %d  %d  %d    ", rpm, (int)pwm, (int)integral_value, (int)derivative_value);
+    //output_string(str, 1, 5);
   }
   if (!motor_on) {
     setup_motor_pwm(0);
