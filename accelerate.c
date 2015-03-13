@@ -46,10 +46,12 @@ void update_acceleration(int target) {
   {
     char str[20];
     count = 0;
-    sprintf(str, "rpm? %d %d", rpm, previousTCNT);
+    sprintf(str, "rpm? %d %d %d", rpm, previousTCNT, TCNT5);
     output_string(str, 1, 5);
+  
+    previousTCNT = TCNT5; 
   }
-  previousTCNT = TCNT5; 
+
   if (motor_on) {
     integral_value += target - rpm; 
     derivative_value = target - previous;

@@ -85,7 +85,7 @@ int main(void)
 }
 
 #define STEERING_LOOP_COUNT 1
-#define RPM_LOOP_COUNT 50
+#define RPM_LOOP_COUNT 100
 
 volatile char str_timer_counter = 0;
 volatile char rpm_timer_counter = 0;   // remove at least one counter
@@ -100,5 +100,6 @@ ISR(TIMER2_COMPA_vect) {
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     update_acceleration(15);
+    rpm_timer_counter = 0;
   }
 }
