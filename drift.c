@@ -49,6 +49,7 @@ volatile unsigned int rpm = 0;
 volatile int bumper = 0;
 volatile int motor_pwm = 0;
 const int STARTING_SPEED = 160;
+const int SCREEN_LOOP_COUNT = 50;
 
 int main(void)
 {
@@ -68,22 +69,26 @@ int main(void)
   char bmpbuf[20];
   char rpmbuf[20];
   char pwmbuf[20];
-
-  setup_motor_pwm(STARTING_SPEED);
+  int i = 0;
   for(;;) {
     if (!(PINE & 1 << PE5)) {
-      motor_pwm = motor_pwm == 0 ? STARTING_SPEED : 0;
+      motor_pwm = (motor_pwm == 0 ? STARTING_SPEED : 0);
       setup_motor_pwm(motor_pwm);
       //      reset_PID_stuff();
     }
-    sprintf(rpmbuf, "RPM:     %d  ", rpm);
-    output_string(rpmbuf,1,3);
 
-    sprintf(bmpbuf, "BUMPER:  %d  ", bumper);
-    output_string(bmpbuf, 1, 4);
+    if (i++ == SCREEN_LOOP_COUNT) {
+      sprintf(rpmbuf, "RPM:     %d  ", rpm);
+      output_string(rpmbuf,1,3);
 
-    sprintf(pwmbuf, "PWM:     %d  ", motor_pwm);
-    output_string(pwmbuf, 1, 5);
+      sprintf(bmpbuf, "BUMPER:  %d  ", bumper);
+      output_string(bmpbuf, 1, 4);
+
+      sprintf(pwmbuf, "PWM:     %d  ", motor_pwm);
+      output_string(pwmbuf, 1, 5);
+
+      i = 0;
+    }
   }
 }
 
@@ -91,7 +96,7 @@ int main(void)
 #define RPM_LOOP_COUNT 50
 
 ISR(TIMER2_COMPA_vect) {
-  PORTC = ~PORTC; // TEST, blink the leds
+  //PORTC = ~PORTC; // TEST, blink the leds
 
   if (str_timer_counter++ > STEERING_LOOP_COUNT) {
     str_timer_counter = 0;
