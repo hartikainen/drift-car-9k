@@ -25,16 +25,8 @@ void setup_bumper_ddr(void)
 float integral_value = 0;
 float derivate_value = 0;
 
-float fake_Ki = Ki;
-void reset_PID_stuff(void) {
-  fake_Ki += 0.001;
-  char fakekistr[10];
-  sprintf(fakekistr, "fake_Ki: %d", (int)fake_Ki);
-  output_string(fakekistr,1,1);
-}
-
 /* Returns the "rough" direction in the pwm units, */
-/* between about 300 and 460 */
+/* between about WHEELS_MIN and WHEELS_MAX */
 float bumper_int = 0;
 int target_from_bumper_led(uint8_t bumper_byte)
 {
