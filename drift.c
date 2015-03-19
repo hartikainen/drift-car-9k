@@ -6,11 +6,10 @@
 #include "accelerate.h"
 #include "output.h"
 #include "bumper.h"
-#include "PID.h"
 #include "stdio.h"
 
 #define SCREEN_LOOP_COUNT 10000
-#define STEERING_LOOP_COUNT 1
+#define STEERING_LOOP_COUNT 200
 #define RPM_LOOP_COUNT 50
 #define BTN_LOOP_COUNT 1000
 static volatile char str_timer_counter = 0;
