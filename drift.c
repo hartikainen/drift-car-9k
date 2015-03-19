@@ -10,10 +10,10 @@
 
 #define SCREEN_LOOP_COUNT 10000
 #define STEERING_LOOP_COUNT 200
-#define RPM_LOOP_COUNT 50
-#define BTN_LOOP_COUNT 1000
+#define RPM_LOOP_COUNT 1000
+#define BTN_LOOP_COUNT 3000
 static volatile char str_timer_counter = 0;
-static volatile char rpm_timer_counter = 0;   // remove at least one counter
+static volatile int rpm_timer_counter = 0;   // remove at least one counter
 static volatile unsigned int last_rpm = 0;
 static volatile unsigned int rpm = 0;
 static volatile int bumper = 0;
@@ -83,12 +83,14 @@ ISR(TIMER2_COMPA_vect) {
     read_bumper_turn_wheels();
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
-    update_acceleration(30);
+    update_acceleration(15);
+    rpm_timer_counter = 0;
   }
   if (btn_delay == 1){
     if (btn_timer_counter++ > BTN_LOOP_COUNT) {
       btn_delay = 0;
       PORTC = ~PORTC;
+      btn_timer_counter = 0;
     }
   }
   if (!(PINE & 1 << PE5) && btn_delay == 0) {
@@ -96,7 +98,5 @@ ISR(TIMER2_COMPA_vect) {
     btn_delay = 1;
     btn_timer_counter = 0;
   }
-
-
 }
 
