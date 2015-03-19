@@ -62,7 +62,6 @@ int target_from_bumper_led(uint8_t bumper_byte)
 }
 
 volatile int current_value = WHEELS_MIDDLE;
-volatile int counter_strike;
 void read_bumper_turn_wheels(void)
 {
   int target_value, error, previous_error;
