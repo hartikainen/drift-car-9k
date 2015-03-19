@@ -39,25 +39,27 @@ int get_pwm(void) {
   return (int)pwm;
 }
 
+void update_rpm(void) { 
+  static unsigned int previousTCNT = 0;
+  if (TCNT5 < previousTCNT) {
+    previousTCNT = 65536 - previousTCNT;
+  }
+  rpm = TCNT5 - previousTCNT;
+  previousTCNT = TCNT5;
+}
+
 void update_acceleration(int target) {
   static float integral_value = 0.0;
   static unsigned int last_rpm = 0;
   float derivative_value = 0.0;
   float proportional_value = 0.0;
-  static unsigned int previousTCNT = 0;
   float tf = (float)target;
 
-  if (TCNT5 < previousTCNT) {
-    previousTCNT = 65536 - previousTCNT;
-  }
-  rpm = TCNT5 - previousTCNT;
-
-  previousTCNT = TCNT5;
   if (motor_on) {
     integral_value += tf - (float)rpm; 
     derivative_value = rpm - last_rpm;
     proportional_value = tf - (float)rpm;
-    pwm = 70.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
+    pwm = 40.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
     if (pwm > MAXPWM) {
       pwm = MAXPWM;
     }

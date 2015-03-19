@@ -83,6 +83,7 @@ ISR(TIMER2_COMPA_vect) {
     read_bumper_turn_wheels();
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
+    update_rpm();
     update_acceleration(15);
     rpm_timer_counter = 0;
   }
