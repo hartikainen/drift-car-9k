@@ -49,7 +49,7 @@ int target_from_bumper_led(uint8_t bumper_byte)
   case 0b01000000:
     bumper_float = 2.8;
     break;
-  case 0b10000000: // VASEN, WHEELS_MAXia vastava
+  case 0b10000000: // VASEN, WHEELS_MAXia vastaava
     bumper_float = 4.0;
     break;
   default:
@@ -76,9 +76,9 @@ void read_bumper_turn_wheels(void)
   previous_error = error;
 
   output = (Kp * (float)error) + (Ki * (float)integral_value) + (Kd * (float)derivate_value);
-  /* Add or substract 0.5 to avoid flooring errors */
+  /* Add or substract 1.0 to avoid flooring errors */
   /* Otherwise we end up in a situation where */
-  /* current_value += 0 and we're off by up to 10 pwm units */
+  /* current_value += 0 and we're off by up to 9 pwm units */
   if (output > 0) output += 1.0;
   if (output < 0) output -= 1.0;
 
