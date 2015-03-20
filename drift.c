@@ -72,6 +72,10 @@ int main(void)
       sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
       output_string(pwmbuf, 1, 5);
 
+      sprintf(pwmbuf, "tgt:     %d  ", get_target_rpm());
+      output_string(pwmbuf, 1, 6);
+
+
       i = 0;
     }
   }

@@ -23,8 +23,8 @@ void toggle_motor() {
 }
 
 #define Kp 1.0
-#define Ki 0.5
-#define Kd 2.0
+#define Ki 0.2
+#define Kd 3.0
 #define MAXPWM 300.0
 
 static unsigned int rpm = 0;
@@ -50,18 +50,28 @@ void update_rpm(void) {
 }
 
 int get_target_rpm(void) {
-  static int rpm = 0;
+  static int tgt = 0;
   uint8_t bp = ~BUMPER_PIN;
-  if ((bp == 0x10000000) || (bp == 0x00000001)) {
-    rpm = 2;
-  } else if ((bp == 0x01000000) || (bp == 0x00000010)) {
-    rpm = 2;
-  } else if ((bp == 0x00100000) || (bp == 0x00000100)) {
-    rpm = 3;
-  } else if ((bp == 0x00010000) || (bp == 0x00001000)) {
-    rpm = 4;
+  switch (bp)
+  {
+    case 0b10000000:
+    case 0b01000000:
+    case 0b00000010:
+    case 0b00000001:
+      tgt = 1;
+      break;
+    case 0b00100000:
+    case 0b00000100:
+      tgt = 2;
+      break;
+    case 0b00010000:
+    case 0b00001000:
+      tgt = 3;
+      break;
+    default:
+      break;
   }
-  return rpm;
+  return tgt;
 }
 
 void update_acceleration(void) {
@@ -78,7 +88,7 @@ void update_acceleration(void) {
     integral_value += error; 
     derivative_value = error - last_error;
     proportional_value = error;
-    pwm = 7.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
+    pwm = 10.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
     if (pwm > MAXPWM) {
       pwm = MAXPWM;
     }
