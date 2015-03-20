@@ -22,7 +22,7 @@ void toggle_motor() {
 }
 
 #define Kp 1.0
-#define Ki 0.0
+#define Ki 1.0
 #define Kd 0.0
 #define MAXPWM 300.0
 
