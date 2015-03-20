@@ -10,7 +10,7 @@
 
 #define SCREEN_LOOP_COUNT 10000
 #define STEERING_LOOP_COUNT 100
-#define RPM_LOOP_COUNT 1000
+#define RPM_LOOP_COUNT 2000
 #define BTN_LOOP_COUNT 3000
 static volatile char str_timer_counter = 0;
 static volatile int rpm_timer_counter = 0;   // remove at least one counter
@@ -84,7 +84,7 @@ ISR(TIMER2_COMPA_vect) {
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     update_rpm();
-    update_acceleration(10);
+    update_acceleration(6);
     rpm_timer_counter = 0;
   }
   if (btn_delay == 1){
