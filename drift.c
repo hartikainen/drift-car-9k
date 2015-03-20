@@ -84,7 +84,7 @@ ISR(TIMER2_COMPA_vect) {
   }
   if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
     update_rpm();
-    update_acceleration(2);
+    update_acceleration();
     rpm_timer_counter = 0;
   }
   if (btn_delay == 1){
