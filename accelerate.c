@@ -22,9 +22,9 @@ void toggle_motor() {
   motor_on = !motor_on;
 }
 
-#define Kp 1.0
-#define Ki 0.2
-#define Kd 3.0
+#define Kp 2.0
+#define Ki 0.1
+#define Kd 4.0
 #define MAXPWM 300.0
 
 static unsigned int rpm = 0;
@@ -58,15 +58,15 @@ int get_target_rpm(void) {
     case 0b01000000:
     case 0b00000010:
     case 0b00000001:
-      tgt = 1;
+      tgt = 0;
       break;
     case 0b00100000:
     case 0b00000100:
-      tgt = 2;
+      tgt = 1;
       break;
     case 0b00010000:
     case 0b00001000:
-      tgt = 3;
+      tgt = 4;
       break;
     default:
       break;
