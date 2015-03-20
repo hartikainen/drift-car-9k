@@ -22,51 +22,51 @@ void setup_bumper_ddr(void)
 #define Ki 0.000001
 #define Kd 0.5
 
-float integral_value = 0;
-float derivate_value = 0;
-
 /* Returns the "rough" direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
-float bumper_int = 0;
 int target_from_bumper_led(uint8_t bumper_byte)
 {
+  static float bumper_float = 0;
   switch (bumper_byte) {
   case 0b00000001: // OIKEA
-    bumper_int = -4.0;
+    bumper_float = -4.0;
     break;
   case 0b00000010:
-    bumper_int = -2.8;
+    bumper_float = -2.8;
     break;
   case 0b00000100:
-    bumper_int = -1.3;
+    bumper_float = -1.3;
     break;
   case 0b00001000:
-    bumper_int = -0.4;
+    bumper_float = -0.4;
     break;
   case 0b00010000:
-    bumper_int = 0.4;
+    bumper_float = 0.4;
     break;
   case 0b00100000:
-    bumper_int = 1.3;
+    bumper_float = 1.3;
     break;
   case 0b01000000:
-    bumper_int = 2.8;
+    bumper_float = 2.8;
     break;
-  case 0b10000000: // VASEN, WHEELS_MAXia vastava
-    bumper_int = 4.0;
+  case 0b10000000: // VASEN, WHEELS_MAXia vastaava
+    bumper_float = 4.0;
     break;
   default:
-    bumper_int = bumper_int;
+    bumper_float = bumper_float;
   }
-  return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_int));
+  return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
 }
 
-volatile int current_value = WHEELS_MIDDLE;
 void read_bumper_turn_wheels(void)
 {
-  int target_value, error, previous_error;
-  float output;
+  static int current_value = (int)WHEELS_MIDDLE;
+  static int previous_error = 0;
+  static float integral_value = 0.0;
+  int target_value, error;
+  float output, derivate_value;
   uint8_t bp = ~BUMPER_PIN;
+
   target_value = target_from_bumper_led(bp);
 
   error = (target_value - current_value);
@@ -76,9 +76,9 @@ void read_bumper_turn_wheels(void)
   previous_error = error;
 
   output = (Kp * (float)error) + (Ki * (float)integral_value) + (Kd * (float)derivate_value);
-  /* Add or substract 0.5 to avoid flooring errors */
+  /* Add or substract 1.0 to avoid flooring errors */
   /* Otherwise we end up in a situation where */
-  /* current_value += 0 and we're off by up to 10 pwm units */
+  /* current_value += 0 and we're off by up to 9 pwm units */
   if (output > 0) output += 1.0;
   if (output < 0) output -= 1.0;
 

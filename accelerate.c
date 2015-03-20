@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <stdio.h>
 #include "accelerate.h"
+#include "bumper.h"
 #include "output.h"
 
 void disable_motor_pwm(void) {
@@ -48,13 +49,30 @@ void update_rpm(void) {
   previousTCNT = TCNT5;
 }
 
-void update_acceleration(int target) {
+int get_target_rpm(void) {
+  static int rpm = 0;
+  uint8_t bp = ~BUMPER_PIN;
+  if ((bp == 0x10000000) || (bp == 0x00000001)) {
+    rpm = 2;
+  } else if ((bp == 0x01000000) || (bp == 0x00000010)) {
+    rpm = 2;
+  } else if ((bp == 0x00100000) || (bp == 0x00000100)) {
+    rpm = 3;
+  } else if ((bp == 0x00010000) || (bp == 0x00001000)) {
+    rpm = 4;
+  }
+  return rpm;
+}
+
+void update_acceleration(void) {
   static float integral_value = 0.0;
   static float last_error = 0;
   float derivative_value = 0.0;
   float proportional_value = 0.0;
+  int target = get_target_rpm();
   float tf = (float)target;
   float error = tf - (float)rpm;
+
   if (motor_on) {
 
     integral_value += error; 
