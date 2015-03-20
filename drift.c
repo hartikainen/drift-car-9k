@@ -9,7 +9,7 @@
 #include "stdio.h"
 
 #define SCREEN_LOOP_COUNT 10000
-#define STEERING_LOOP_COUNT 200
+#define STEERING_LOOP_COUNT 100
 #define RPM_LOOP_COUNT 1000
 #define BTN_LOOP_COUNT 3000
 static volatile char str_timer_counter = 0;
