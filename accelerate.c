@@ -21,9 +21,9 @@ void toggle_motor() {
   motor_on = !motor_on;
 }
 
-#define Kp 3.0
-#define Ki 0.1
-#define Kd 0.5
+#define Kp 1.0
+#define Ki 0.5
+#define Kd 2.0
 #define MAXPWM 300.0
 
 static unsigned int rpm = 0;
@@ -59,7 +59,7 @@ void update_acceleration(int target) {
     integral_value += tf - (float)rpm; 
     derivative_value = (float)rpm - (float)last_rpm;
     proportional_value = tf - (float)rpm;
-    pwm = 6.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
+    pwm = 10.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
     if (pwm > MAXPWM) {
       pwm = MAXPWM;
     }
