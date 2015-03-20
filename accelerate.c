@@ -50,22 +50,23 @@ void update_rpm(void) {
 
 void update_acceleration(int target) {
   static float integral_value = 0.0;
-  static unsigned int last_rpm = 0;
+  static float last_error = 0;
   float derivative_value = 0.0;
   float proportional_value = 0.0;
   float tf = (float)target;
-
+  float error = tf - (float)rpm;
   if (motor_on) {
-    integral_value += tf - (float)rpm; 
-    derivative_value = (float)rpm - (float)last_rpm;
-    proportional_value = tf - (float)rpm;
-    pwm = 10.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
+
+    integral_value += error; 
+    derivative_value = error - last_error;
+    proportional_value = error;
+    pwm = 7.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
     if (pwm > MAXPWM) {
       pwm = MAXPWM;
     }
     setup_motor_pwm((int)pwm);
   } 
-  last_rpm = rpm;
+  last_error = error;
   if (!motor_on) {
     setup_motor_pwm(0);
   }
