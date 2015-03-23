@@ -56,11 +56,7 @@ int main(void)
   setup_button();
 
   sei();
-  char bmpbuf[20];
-  char rpmbuf[20];
-  char pwmbuf[20];
-  char lapbuf[20];
-  char recbuf[20];
+  char strbuf[20];
   for(;;) {
     if (lap_timer_counter > LAPTIME_LOOP_COUNT) {
       update_laptime();
@@ -89,25 +85,25 @@ int main(void)
     }
 
     if (scr_timer_counter > SCREEN_LOOP_COUNT) {
-      sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
-      output_string(rpmbuf,1,3);
+      sprintf(strbuf, "RPM:     %d  ", get_rpm());
+      output_string(strbuf,1,3);
 
-      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_int());
-      output_string(bmpbuf, 1, 4);
+      sprintf(strbuf, "BUMPER:  %d  ", get_bumper_int());
+      output_string(strbuf, 1, 4);
 
-      sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
-      output_string(pwmbuf, 1, 5);
+      sprintf(strbuf, "PWM:     %d  ", get_pwm());
+      output_string(strbuf, 1, 5);
 
-      sprintf(pwmbuf, "tgt:     %d  ", get_target_rpm());
-      output_string(pwmbuf, 1, 6);
+      sprintf(strbuf, "tgt:     %d  ", get_target_rpm());
+      output_string(strbuf, 1, 6);
 
-      sprintf(lapbuf, "LAP: %d - %d.%d",
+      sprintf(strbuf, "LAP: %d - %d.%d",
         get_current_lap(), get_laptime_secs(), get_laptime_partial());
-      output_string(lapbuf, 1, 7);
+      output_string(strbuf, 1, 7);
 
-      sprintf(lapbuf, "RECORD: %d - %d.%d",
+      sprintf(strbuf, "RECORD: %d - %d.%d",
         get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
-      output_string(lapbuf, 1, 7);
+      output_string(strbuf, 1, 7);
 
       scr_timer_counter = 0;
     }
