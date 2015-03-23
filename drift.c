@@ -8,16 +8,17 @@
 #include "bumper.h"
 #include "stdio.h"
 
-#define SCREEN_LOOP_COUNT 80000
-#define STEERING_LOOP_COUNT 800
-#define RPM_LOOP_COUNT 8000
-#define BTN_LOOP_COUNT 40000
-#define LAPTIME_LOOP_COUNT 12800
-static volatile int str_timer_counter = 0;
-static volatile int rpm_timer_counter = 0;   // remove at least one counter
+#define SCREEN_LOOP_COUNT 10000
+#define STEERING_LOOP_COUNT 100
+#define RPM_LOOP_COUNT 1000
+#define BTN_LOOP_COUNT 5000
+#define LAPTIME_LOOP_COUNT 1600
+
+static volatile unsigned int str_timer_counter = 0;
+static volatile unsigned int rpm_timer_counter = 0;
 static volatile unsigned int btn_timer_counter = 0;
 static volatile unsigned int lap_timer_counter = 0;
-static volatile int motor_pwm = 0;
+static volatile unsigned int scr_timer_counter = 0;
 static volatile char btn_delay = 0;
 
 void setup_timer2(void)
@@ -60,23 +61,22 @@ int main(void)
   char pwmbuf[20];
   char lapbuf[20];
   char recbuf[20];
-  int i = 0;
   for(;;) {
-    if (lap_timer_counter++ > LAPTIME_LOOP_COUNT) {
+    if (lap_timer_counter > LAPTIME_LOOP_COUNT) {
       update_laptime();
       lap_timer_counter = 0;
     }
-    if (str_timer_counter++ > STEERING_LOOP_COUNT) {
+    if (str_timer_counter > STEERING_LOOP_COUNT) {
       str_timer_counter = 0;
       read_bumper_turn_wheels();
     }
-    if (rpm_timer_counter++ > RPM_LOOP_COUNT) {
+    if (rpm_timer_counter > RPM_LOOP_COUNT) {
       update_rpm();
       update_acceleration();
       rpm_timer_counter = 0;
     }
     if (btn_delay == 1){
-      if (btn_timer_counter++ > BTN_LOOP_COUNT) {
+      if (btn_timer_counter > BTN_LOOP_COUNT) {
         btn_delay = 0;
         PORTC = ~PORTC;
         btn_timer_counter = 0;
@@ -88,7 +88,7 @@ int main(void)
       btn_timer_counter = 0;
     }
 
-    if (i++ == SCREEN_LOOP_COUNT) {
+    if (scr_timer_counter > SCREEN_LOOP_COUNT) {
       sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
       output_string(rpmbuf,1,3);
 
@@ -109,11 +109,15 @@ int main(void)
         get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
       output_string(lapbuf, 1, 7);
 
-      i = 0;
+      scr_timer_counter = 0;
     }
   }
 }
 
 ISR(TIMER2_COMPA_vect) {
-
+  str_timer_counter++;
+  rpm_timer_counter++;
+  btn_timer_counter++;
+  lap_timer_counter++;
+  scr_timer_counter++;
 }
