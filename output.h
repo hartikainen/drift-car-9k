@@ -10,3 +10,5 @@ unsigned char USART_receive(void);
 void output_clear(void);
 void output_string(char *str, char x, char y);
 void output_set_opaque_text(void);
+
+void output_update(void);
