@@ -53,7 +53,7 @@ int get_lap_record_lap(void) {
 
 /* Returns the "rough" direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
-static float bumper_int = 0;
+static float bumper_int = 0.0;
 int target_from_bumper_led(uint8_t bumper_byte)
 {
   switch (bumper_byte) {
