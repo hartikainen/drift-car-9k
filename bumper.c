@@ -17,17 +17,43 @@ void setup_bumper_ddr(void)
 {
   BUMPER_DDR = 0;
 }
-  
+
 #define Kp 0.01
 #define Ki 0.000001
 #define Kd 0.5
 
 float integral_value = 0;
 float derivate_value = 0;
+static volatile int laptime_secs = 0;
+static volatile int laptime_partial = 0;
+static volatile int currentLap = 1;
+static volatile int lap_record_secs = 0;
+static volatile int lap_record_partial = 0;
+static volatile int lap_record_lap = 0;
+
+int get_laptime_secs(void) {
+  return laptime_secs;
+}
+int get_laptime_partial(void) {
+  return laptime_partial;
+}
+int get_current_lap(void) {
+  return currentLap;
+}
+int get_lap_record_secs(void) {
+  return lap_record_secs;
+}
+int get_lap_record_partial(void) {
+  return lap_record_partial;
+}
+int get_lap_record_lap(void) {
+  return lap_record_lap;
+}
+
 
 /* Returns the "rough" direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
-float bumper_int = 0;
+static float bumper_int = 0;
 int target_from_bumper_led(uint8_t bumper_byte)
 {
   switch (bumper_byte) {
@@ -61,7 +87,43 @@ int target_from_bumper_led(uint8_t bumper_byte)
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_int));
 }
 
+int get_bumper_int(void) {
+  return bumper_int;
+}
+
+int get_hamming_weight(uint8_t byte)
+{
+  static const uint8_t NIBBLE_LOOKUP [16] =
+  {
+    0, 1, 1, 2, 1, 2, 2, 3,
+    1, 2, 2, 3, 2, 3, 3, 4
+  };
+  return NIBBLE_LOOKUP[byte & 0x0F] + NIBBLE_LOOKUP[byte >> 4];
+}
+
+void update_laptime(void) {
+  if (is_motor_on() && ++laptime_partial > 9) {
+    laptime_secs++;
+    laptime_partial = 0;
+  }
+}
+
+void reset_laptime(void) {
+  laptime_secs = 0;
+  laptime_partial = 0;
+}
+
+void check_lap_record(void) {
+  if (laptime_secs < lap_record_secs ||
+    (laptime_secs == lap_record_secs && laptime_partial < lap_record_partial)) {
+    lap_record_lap = currentLap;
+    lap_record_secs = laptime_secs;
+    lap_record_partial = laptime_partial;
+  }
+}
+
 volatile int current_value = WHEELS_MIDDLE;
+
 void read_bumper_turn_wheels(void)
 {
   int target_value, error, previous_error;
@@ -87,7 +149,14 @@ void read_bumper_turn_wheels(void)
   if (current_value > WHEELS_MAX) current_value = WHEELS_MAX;
   if (current_value < WHEELS_MIN) current_value = WHEELS_MIN;
 
+  // Check if crossing finish line
+  if (get_hamming_weight(bp) > 3 && laptime_secs > LAP_THRESHOLD) {
+    check_lap_record();
+    laptime_secs = 0;
+    laptime_partial = 0;
+    currentLap++;
+  }
+
   // Turn the wheels.
   setup_pwm(current_value);
 }
-

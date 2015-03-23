@@ -5,3 +5,4 @@ int get_pwm(void);
 int get_target_rpm(void);
 void setup_motor_pwm(int);
 void update_rpm(void);
+int is_motor_on(void);

@@ -73,7 +73,7 @@ void send_autobaud(void)
     //PORTC &= ~_BV(PC1);
 
     output_set_opaque_text();
-    output_string("Screen initialized", 1, 1);
+    //output_string("Screen initialized", 1, 1);
     output_string("(.) (.)", 6, 18);
 
   }

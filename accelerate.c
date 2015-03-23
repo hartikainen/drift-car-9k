@@ -20,6 +20,9 @@ void setup_motor_pwm(int pwmoffset) {
 static char motor_on = 0;
 void toggle_motor() {
   motor_on = !motor_on;
+  if (!motor_on) {
+    reset_laptime();
+  }
 }
 
 #define Kp 2.5
@@ -40,7 +43,7 @@ int get_pwm(void) {
   return (int)pwm;
 }
 
-void update_rpm(void) { 
+void update_rpm(void) {
   static unsigned int previousTCNT = 0;
   if (TCNT5 < previousTCNT) {
     previousTCNT = 65536 - previousTCNT;
@@ -76,6 +79,10 @@ int get_target_rpm(void) {
   return tgt;
 }
 
+int is_motor_on(void) {
+  return motor_on;
+}
+
 void update_acceleration(void) {
   static float integral_value = 0.0;
   static float last_error = 0;
@@ -87,7 +94,7 @@ void update_acceleration(void) {
 
   if (motor_on) {
 
-    integral_value += error; 
+    integral_value += error;
     derivative_value = error - last_error;
     proportional_value = error;
     pwm = 10.0*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
@@ -95,7 +102,7 @@ void update_acceleration(void) {
       pwm = MAXPWM;
     }
     setup_motor_pwm((int)pwm);
-  } 
+  }
   last_error = error;
   if (!motor_on) {
     setup_motor_pwm(0);

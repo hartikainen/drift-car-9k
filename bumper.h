@@ -6,11 +6,23 @@
 #define WHEELS_MAX 455
 #define WHEELS_STEP ((WHEELS_MAX - WHEELS_MIN) / 8)
 #define WHEELS_MIDDLE ((WHEELS_MAX + WHEELS_MIN) / 2)
+#define LAP_THRESHOLD 2
 
 void setup_bumper_ddr(void);
 void read_bumper_turn_wheels(void);
 void turn_wheels(int direction);
 void setup_pwm(int val);
 void reset_PID_stuff(void);
-int target_from_bumper_led(uint8_t bumper_byte);
-
+int target_from_bumper_led(uint8_t);
+int get_bumper_int(void);
+int get_current_lap(void);
+int get_laptime_secs(void);
+int get_laptime_partial(void);
+int get_lap_record_secs(void);
+int get_lap_record_partial(void);
+int get_lap_record_lap(void);
+int get_hamming_weight(uint8_t);
+void update_laptime(void);
+void reset_laptime(void);
+int get_hamming(void);
+void check_lap_record(void);

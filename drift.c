@@ -12,14 +12,13 @@
 #define STEERING_LOOP_COUNT 100
 #define RPM_LOOP_COUNT 1000
 #define BTN_LOOP_COUNT 5000
+#define LAPTIME_LOOP_COUNT 1600
 static volatile char str_timer_counter = 0;
 static volatile int rpm_timer_counter = 0;   // remove at least one counter
-static volatile unsigned int last_rpm = 0;
-static volatile unsigned int rpm = 0;
-static volatile int bumper = 0;
+static volatile unsigned int btn_timer_counter = 0;
+static volatile unsigned int lap_timer_counter = 0;
 static volatile int motor_pwm = 0;
 static volatile char btn_delay = 0;
-static volatile int btn_timer_counter = 0;
 
 void setup_timer2(void)
 {
@@ -59,14 +58,16 @@ int main(void)
   char bmpbuf[20];
   char rpmbuf[20];
   char pwmbuf[20];
+  char lapbuf[20];
+  char recbuf[20];
   int i = 0;
   for(;;) {
-   
+
     if (i++ == SCREEN_LOOP_COUNT) {
       sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
       output_string(rpmbuf,1,3);
 
-      sprintf(bmpbuf, "BUMPER:  %d  ", bumper);
+      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_int());
       output_string(bmpbuf, 1, 4);
 
       sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
@@ -75,6 +76,13 @@ int main(void)
       sprintf(pwmbuf, "tgt:     %d  ", get_target_rpm());
       output_string(pwmbuf, 1, 6);
 
+      sprintf(lapbuf, "LAP: %d - %d.%d",
+        get_current_lap(), get_laptime_secs(), get_laptime_partial());
+      output_string(lapbuf, 1, 7);
+
+      sprintf(lapbuf, "RECORD: %d - %d.%d",
+        get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
+      output_string(lapbuf, 1, 7);
 
       i = 0;
     }
@@ -82,6 +90,10 @@ int main(void)
 }
 
 ISR(TIMER2_COMPA_vect) {
+  if (lap_timer_counter++ > LAPTIME_LOOP_COUNT) {
+    update_laptime();
+    lap_timer_counter = 0;
+  }
   if (str_timer_counter++ > STEERING_LOOP_COUNT) {
     str_timer_counter = 0;
     read_bumper_turn_wheels();
@@ -104,4 +116,3 @@ ISR(TIMER2_COMPA_vect) {
     btn_timer_counter = 0;
   }
 }
-
