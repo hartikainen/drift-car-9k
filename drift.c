@@ -23,9 +23,9 @@ static volatile char btn_delay = 0;
 
 void setup_timer2(void)
 {
-  TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20);
+  TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20); // timer with 8x prescaler
   TIMSK2 |= (1 << OCIE2A);
-  OCR2A = 0b11111111;
+  OCR2A = 255;
 }
 
 void setup_leds(void) {
@@ -34,12 +34,12 @@ void setup_leds(void) {
 
 void setup_button(void)
 {
-  DDRE = 0x0; // 0 or FF?
+  DDRE = 0x0;
 }
 
 void setup_tachometer(void) {
-  DDRL &= ~(1<<PL2);
-  TCCR5B |= 1 << CS51 | 1 << CS52;
+  DDRL &= ~(1<<PL2); // set the PL2 pin to input
+  TCCR5B |= 1 << CS51 | 1 << CS52; // set the clock source to external clock source
 }
 
 int main(void)
