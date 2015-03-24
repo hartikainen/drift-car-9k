@@ -21,8 +21,7 @@ static volatile unsigned int lap_timer_counter = 0;
 static volatile unsigned int scr_timer_counter = 0;
 static volatile char btn_delay = 0;
 
-void setup_timer2(void)
-{
+void setup_timer2(void) {
   TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20);
   TIMSK2 |= (1 << OCIE2A);
   OCR2A = 0b11111111;
@@ -32,8 +31,7 @@ void setup_leds(void) {
   DDRC = 0xff;
 }
 
-void setup_button(void)
-{
+void setup_button(void) {
   DDRE = 0x0; // 0 or FF?
 }
 
@@ -42,8 +40,7 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
-int main(void)
-{
+int main(void) {
 
   setup_leds();
   setup_tachometer();
@@ -75,7 +72,7 @@ int main(void)
       update_acceleration();
       rpm_timer_counter = 0;
     }
-    if (btn_delay == 1){
+    if (btn_delay == 1) {
       if (btn_timer_counter > BTN_LOOP_COUNT) {
         btn_delay = 0;
         PORTC = ~PORTC;
@@ -89,7 +86,7 @@ int main(void)
       sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
       output_string(rpmbuf,1,3);
 
-      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_int());
+      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_float());
       output_string(bmpbuf, 1, 4);
 
       sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
@@ -104,7 +101,7 @@ int main(void)
 
       sprintf(lapbuf, "RECORD: %d - %d.%d",
         get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
-      output_string(lapbuf, 1, 7);
+      output_string(lapbuf, 1, 8);
     }
   }
 }
