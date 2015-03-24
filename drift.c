@@ -32,8 +32,7 @@ void setup_leds(void) {
   DDRC = 0xff;
 }
 
-void setup_button(void)
-{
+void setup_button(void) {
   DDRE = 0x0; // 0 or FF?
 }
 
@@ -42,8 +41,7 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
-int main(void)
-{
+int main(void) {
 
   setup_leds();
   setup_tachometer();
@@ -75,7 +73,7 @@ int main(void)
       update_acceleration();
       rpm_timer_counter = 0;
     }
-    if (btn_delay == 1){
+    if (btn_delay == 1) {
       if (btn_timer_counter > BTN_LOOP_COUNT) {
         btn_delay = 0;
         PORTC = ~PORTC;

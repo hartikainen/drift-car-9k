@@ -13,8 +13,7 @@ void setup_pwm(int val) {
   OCR1A = ICR1 - val;
 }
 
-void setup_bumper_ddr(void)
-{
+void setup_bumper_ddr(void) {
   BUMPER_DDR = 0;
 }
 
@@ -44,8 +43,41 @@ int get_lap_record_lap(void) {
   return lap_record_lap;
 }
 
+int get_bumper_float(void) {
+  return bumper_float;
+}
 
-/* Returns the "rough" direction in the pwm units, */
+/* Hamming weight, e.g. the count of active bumper leds */
+int get_hamming_weight(uint8_t byte) {
+  static const uint8_t NIBBLE_LOOKUP [16] = {
+    0, 1, 1, 2, 1, 2, 2, 3,
+    1, 2, 2, 3, 2, 3, 3, 4
+  };
+  return NIBBLE_LOOKUP[byte & 0x0F] + NIBBLE_LOOKUP[byte >> 4];
+}
+
+void update_laptime(void) {
+  if (is_motor_on() && ++laptime_partial > 9) {
+    laptime_secs++;
+    laptime_partial = 0;
+  }
+}
+
+void reset_laptime(void) {
+  laptime_secs = 0;
+  laptime_partial = 0;
+}
+
+void check_lap_record(void) {
+  if (laptime_secs < lap_record_secs ||
+    (laptime_secs == lap_record_secs && laptime_partial < lap_record_partial)) {
+    lap_record_lap = currentLap;
+    lap_record_secs = laptime_secs;
+    lap_record_partial = laptime_partial;
+  }
+}
+
+/* Returns the target direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
 static float bumper_float = 0.0;
 int target_from_bumper_led(uint8_t bumper_byte) {
@@ -80,43 +112,10 @@ int target_from_bumper_led(uint8_t bumper_byte) {
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
 }
 
-int get_bumper_float(void) {
-  return bumper_float;
-}
-
-int get_hamming_weight(uint8_t byte)
-{
-  static const uint8_t NIBBLE_LOOKUP [16] =
-  {
-    0, 1, 1, 2, 1, 2, 2, 3,
-    1, 2, 2, 3, 2, 3, 3, 4
-  };
-  return NIBBLE_LOOKUP[byte & 0x0F] + NIBBLE_LOOKUP[byte >> 4];
-}
-
-void update_laptime(void) {
-  if (is_motor_on() && ++laptime_partial > 9) {
-    laptime_secs++;
-    laptime_partial = 0;
-  }
-}
-
-void reset_laptime(void) {
-  laptime_secs = 0;
-  laptime_partial = 0;
-}
-
-void check_lap_record(void) {
-  if (laptime_secs < lap_record_secs ||
-    (laptime_secs == lap_record_secs && laptime_partial < lap_record_partial)) {
-    lap_record_lap = currentLap;
-    lap_record_secs = laptime_secs;
-    lap_record_partial = laptime_partial;
-  }
-}
-
-void read_bumper_turn_wheels(void)
-{
+/* Function for turning the wheels according to the bumper leds reading */
+/* Basically, bumper led show where we should turn, and the function turns */
+/* The wheels according to the PID control values */
+void read_bumper_turn_wheels(void) {
   static int integral_value = 0, current_value = WHEELS_MIDDLE;
   int target_value, error, previous_error;
   float output, derivate_value;
@@ -138,6 +137,7 @@ void read_bumper_turn_wheels(void)
 
   current_value += (int)(output);
 
+  /* Limit the values s.t. the servo won't be turned too much */
   if (current_value > WHEELS_MAX) current_value = WHEELS_MAX;
   if (current_value < WHEELS_MIN) current_value = WHEELS_MIN;
 
