@@ -13,8 +13,7 @@ void setup_pwm(int val) {
   OCR1A = ICR1 - val;
 }
 
-void setup_bumper_ddr(void)
-{
+void setup_bumper_ddr(void) {
   BUMPER_DDR = 0;
 }
 
@@ -54,8 +53,7 @@ int get_lap_record_lap(void) {
 /* Returns the "rough" direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
 static float bumper_int = 0.0;
-int target_from_bumper_led(uint8_t bumper_byte)
-{
+int target_from_bumper_led(uint8_t bumper_byte) {
   switch (bumper_byte) {
   case 0b00000001: // OIKEA
     bumper_int = -4.0;
@@ -91,8 +89,7 @@ int get_bumper_int(void) {
   return bumper_int;
 }
 
-int get_hamming_weight(uint8_t byte)
-{
+int get_hamming_weight(uint8_t byte) {
   static const uint8_t NIBBLE_LOOKUP [16] =
   {
     0, 1, 1, 2, 1, 2, 2, 3,
@@ -124,8 +121,7 @@ void check_lap_record(void) {
 
 volatile int current_value = WHEELS_MIDDLE;
 
-void read_bumper_turn_wheels(void)
-{
+void read_bumper_turn_wheels(void) {
   int target_value, error, previous_error;
   float output;
   uint8_t bp = ~BUMPER_PIN;

@@ -41,9 +41,7 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
-int main(void)
-{
-
+int main(void) {
   setup_leds();
   setup_tachometer();
   setup_bumper_ddr();
