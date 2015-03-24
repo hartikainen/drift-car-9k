@@ -84,27 +84,28 @@ int is_motor_on(void) {
 }
 
 void update_acceleration(void) {
+  if (!motor_on) {
+    setup_motor_pwm(0);
+    return;
+  }
+
   static float integral_value = 0.0;
   static float last_error = 0;
   float derivative_value = 0.0;
   float proportional_value = 0.0;
   int target = get_target_rpm();
   float tf = (float)target;
-  float error = tf - (float)rpm *20.0;
+  float error = tf - (float)rpm * 20.0;
 
-  if (motor_on) {
+  integral_value += error;
+  derivative_value = error - last_error;
+  proportional_value = error;
+  pwm = 0.80*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
 
-    integral_value += error;
-    derivative_value = error - last_error;
-    proportional_value = error;
-    pwm = 0.80*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
-    if (pwm > MAXPWM) {
-      pwm = MAXPWM;
-    }
-    setup_motor_pwm((int)pwm);
-  }
+  if (pwm > MAXPWM) pwm = MAXPWM;
+  if (pwm < 0) pwm = 0;
+
+  setup_motor_pwm((int)pwm);
+
   last_error = error;
-  if (!motor_on) {
-    setup_motor_pwm(0);
-  }
 }
