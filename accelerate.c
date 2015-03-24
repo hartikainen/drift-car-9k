@@ -59,7 +59,7 @@ int get_target_rpm(void) {
   {
     case 0b10000000:
     case 0b00000001:
-      tgt = 0;
+      tgt = 1;
       break;
     case 0b01000000:
     case 0b00000010:

@@ -86,9 +86,6 @@ int main(void)
       toggle_motor();
       btn_delay = 1;
       btn_timer_counter = 0;
-    }
-
-    if (scr_timer_counter > SCREEN_LOOP_COUNT) {
       sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
       output_string(rpmbuf,1,3);
 
@@ -108,8 +105,6 @@ int main(void)
       sprintf(lapbuf, "RECORD: %d - %d.%d",
         get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
       output_string(lapbuf, 1, 7);
-
-      scr_timer_counter = 0;
     }
   }
 }
