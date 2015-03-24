@@ -70,7 +70,7 @@ void reset_laptime(void) {
 }
 
 void check_lap_record(void) {
-  if (laptime_secs < lap_record_secs ||
+  if (lap_record_lap == 0 || laptime_secs < lap_record_secs ||
     (laptime_secs == lap_record_secs && laptime_partial < lap_record_partial)) {
     lap_record_lap = currentLap;
     lap_record_secs = laptime_secs;
