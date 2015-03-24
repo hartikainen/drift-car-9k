@@ -61,10 +61,10 @@ int target_from_bumper_led(uint8_t bumper_byte)
     bumper_int = -4.0;
     break;
   case 0b00000010:
-    bumper_int = -2.8;
+    bumper_int = -3.0;
     break;
   case 0b00000100:
-    bumper_int = -1.3;
+    bumper_int = -1.8;
     break;
   case 0b00001000:
     bumper_int = -0.4;
@@ -73,10 +73,10 @@ int target_from_bumper_led(uint8_t bumper_byte)
     bumper_int = 0.4;
     break;
   case 0b00100000:
-    bumper_int = 1.3;
+    bumper_int = 1.8;
     break;
   case 0b01000000:
-    bumper_int = 2.8;
+    bumper_int = 3.0;
     break;
  case 0b10000000: // VASEN, WHEELS_MAXia vastava
     bumper_int = 4.0;

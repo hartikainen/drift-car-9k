@@ -25,7 +25,7 @@ void toggle_motor() {
   }
 }
 
-#define Kp 80.0
+#define Kp 3.0
 #define Ki 0.0
 #define Kd 0.0
 #define MAXPWM 300.0
@@ -59,19 +59,19 @@ int get_target_rpm(void) {
   {
     case 0b10000000:
     case 0b00000001:
-      tgt = 1;
+      tgt = 45;
       break;
     case 0b01000000:
     case 0b00000010:
-      tgt = 2;
+      tgt = 55;
       break;
     case 0b00100000:
     case 0b00000100:
-      tgt = 3;
+      tgt = 70;
       break;
     case 0b00010000:
     case 0b00001000:
-      tgt = 4;
+      tgt = 110;
       break;
     default:
       break;
@@ -90,7 +90,7 @@ void update_acceleration(void) {
   float proportional_value = 0.0;
   int target = get_target_rpm();
   float tf = (float)target;
-  float error = tf - (float)rpm;
+  float error = tf - (float)rpm *20.0;
 
   if (motor_on) {
 
