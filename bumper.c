@@ -112,6 +112,17 @@ int target_from_bumper_led(uint8_t bumper_byte) {
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
 }
 
+void check_finish_line(void) {
+// Check if crossing finish line
+  uint8_t bp = ~BUMPER_PIN;
+  if (get_hamming_weight(bp) > 3 && laptime_secs > LAP_THRESHOLD) {
+    check_lap_record();
+    laptime_secs = 0;
+    laptime_partial = 0;
+    currentLap++;
+  }
+}
+
 /* Function for turning the wheels according to the bumper leds reading */
 /* Basically, bumper led show where we should turn, and the function turns */
 /* The wheels according to the PID control values */
@@ -141,14 +152,6 @@ void read_bumper_turn_wheels(void) {
   /* Limit the values s.t. the servo won't be turned too much */
   if (current_value > WHEELS_MAX) current_value = WHEELS_MAX;
   if (current_value < WHEELS_MIN) current_value = WHEELS_MIN;
-
-  // Check if crossing finish line
-  if (get_hamming_weight(bp) > 3 && laptime_secs > LAP_THRESHOLD) {
-    check_lap_record();
-    laptime_secs = 0;
-    laptime_partial = 0;
-    currentLap++;
-  }
 
   // Try to detect overstreering when/before crossing finish line
   if (current_value == WHEELS_MAX && current_value - old_value > WHEELS_STEP) {

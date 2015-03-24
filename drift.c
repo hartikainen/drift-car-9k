@@ -9,7 +9,8 @@
 #include "stdio.h"
 
 #define SCREEN_LOOP_COUNT 10000
-#define STEERING_LOOP_COUNT 100
+#define STEERING_LOOP_COUNT 150
+#define FINISHLINE_LOOP_COUNT 100
 #define RPM_LOOP_COUNT 1000
 #define BTN_LOOP_COUNT 5000
 #define LAPTIME_LOOP_COUNT 1600
@@ -19,6 +20,8 @@ static volatile unsigned int rpm_timer_counter = 0;
 static volatile unsigned int btn_timer_counter = 0;
 static volatile unsigned int lap_timer_counter = 0;
 static volatile unsigned int scr_timer_counter = 0;
+static volatile unsigned int finish_line_counter = 0;
+
 static volatile char btn_delay = 0;
 
 void setup_timer2(void) {
@@ -66,6 +69,10 @@ int main(void) {
     if (str_timer_counter > STEERING_LOOP_COUNT) {
       str_timer_counter = 0;
       read_bumper_turn_wheels();
+    }
+    if (finish_line_counter > FINISHLINE_LOOP_COUNT) {
+      check_finish_line();
+      finish_line_counter = 0;
     }
     if (rpm_timer_counter > RPM_LOOP_COUNT) {
       update_rpm();
