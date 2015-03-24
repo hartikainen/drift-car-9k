@@ -101,7 +101,7 @@ int main(void) {
 
       sprintf(lapbuf, "RECORD: %d - %d.%d",
         get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
-      output_string(lapbuf, 1, 7);
+      output_string(lapbuf, 1, 8);
     }
   }
 }

@@ -23,6 +23,7 @@ static volatile int currentLap = 1;
 static volatile int lap_record_secs = 0;
 static volatile int lap_record_partial = 0;
 static volatile int lap_record_lap = 0;
+static float bumper_float = 0.0;
 
 int get_laptime_secs(void) {
   return laptime_secs;
@@ -79,7 +80,6 @@ void check_lap_record(void) {
 
 /* Returns the target direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
-static float bumper_float = 0.0;
 int target_from_bumper_led(uint8_t bumper_byte) {
   switch (bumper_byte) {
   case 0b00000001: // OIKEA
@@ -117,11 +117,12 @@ int target_from_bumper_led(uint8_t bumper_byte) {
 /* The wheels according to the PID control values */
 void read_bumper_turn_wheels(void) {
   static int integral_value = 0, current_value = WHEELS_MIDDLE;
-  int target_value, error, previous_error;
+  int target_value, error, previous_error, old_value;
   float output, derivate_value;
   uint8_t bp = ~BUMPER_PIN;
   target_value = target_from_bumper_led(bp);
 
+  old_value = current_value;
   error = (target_value - current_value);
 
   integral_value += error;
@@ -147,6 +148,14 @@ void read_bumper_turn_wheels(void) {
     laptime_secs = 0;
     laptime_partial = 0;
     currentLap++;
+  }
+
+  // Try to detect overstreering when/before crossing finish line
+  if (current_value == WHEELS_MAX && current_value - old_value > WHEELS_STEP) {
+    current_value = old_value;
+  }
+  else if (current_value == WHEELS_MIN && old_value - current_value > WHEELS_STEP) {
+    current_value = old_value;
   }
 
   // Turn the wheels.
