@@ -8,10 +8,10 @@
 #define WHEELS_STEP ((WHEELS_MAX - WHEELS_MIN) / 8)
 #define WHEELS_MIDDLE ((WHEELS_MAX + WHEELS_MIN) / 2)
 
-/* Values for PID steering */
-#define Kp 0.01
-#define Ki 0.000001
-#define Kd 0.5
+/* Values for PID steering, s for steering */
+#define sKp 0.5
+#define sKi 0//0.001
+#define sKd 0
 
 #define LAP_THRESHOLD 2
 

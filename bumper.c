@@ -140,7 +140,7 @@ void read_bumper_turn_wheels(void) {
   derivate_value = error - previous_error;
   previous_error = error;
 
-  output = (Kp * (float)error) + (Ki * (float)integral_value) + (Kd * (float)derivate_value);
+  output = (sKp * (float)error) + (sKi * (float)integral_value) + (sKd * (float)derivate_value);
   /* Add or substract 1.0 to avoid flooring errors */
   /* Otherwise we end up in a situation where */
   /* current_value += 0 and we're off by up to 9 pwm units */
