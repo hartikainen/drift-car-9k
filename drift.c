@@ -8,7 +8,7 @@
 #include "bumper.h"
 #include "stdio.h"
 
-#define SCREEN_LOOP_COUNT 10000
+#define SCREEN_LOOP_COUNT 40000
 #define STEERING_LOOP_COUNT 100
 #define RPM_LOOP_COUNT 1000
 #define BTN_LOOP_COUNT 5000

@@ -3,7 +3,17 @@
 #include "output.h"
 #include <string.h>
 
-static volatile char *outputbuffer[24];
+
+static char bufstr1[50];
+static char bufstr2[50];
+static char bufstr3[50];
+static char bufstr4[50];
+static char bufstr5[50];
+static char bufstr6[50];
+static char bufstr7[50];
+static char bufstr8[50];
+
+static volatile char *outputbuffer[] = {bufstr1, bufstr2, bufstr3, bufstr4, bufstr5, bufstr6, bufstr7, bufstr8};
 static volatile char bufindex = 0;
 static volatile char strindex = 0;
 
@@ -69,13 +79,13 @@ void output_update(void)
 void output_string(char* string, char x, char y)
 {
   int length = 6 + strlen(string) + 1; // 6 for the initial command, 1 for the terminate char
-  char output[50] = {'s', x, y, 0x3, 0xFF, 0xFF};
+  const char output[50] = {'s', x, y, 0x3, 0xFF, 0xFF};
   strcat(output, string);
   strcat(output, 0x00); // concat the terminate char
-  if (bufindex > 9) {
-    bufindex = bufindex % 10;
+  if (bufindex > 7) {
+    bufindex = bufindex % 8;
   }
-  outputbuffer[bufindex] = output;
+  strcpy(outputbuffer[bufindex], output);
 }
 
 void send_autobaud(void)
