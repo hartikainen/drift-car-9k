@@ -9,11 +9,11 @@
 #include "stdio.h"
 
 #define SCREEN_LOOP_COUNT 10000
-#define STEERING_LOOP_COUNT 150
+#define STEERING_LOOP_COUNT 100
 #define FINISHLINE_LOOP_COUNT 100
 #define RPM_LOOP_COUNT 1000
 #define BTN_LOOP_COUNT 5000
-#define LAPTIME_LOOP_COUNT 1600
+#define LAPTIME_LOOP_COUNT 781
 
 static volatile unsigned int str_timer_counter = 0;
 static volatile unsigned int rpm_timer_counter = 0;
