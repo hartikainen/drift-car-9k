@@ -2,10 +2,17 @@
 #define BUMPER_DDR DDRA
 #define BUMPER_PIN PINA
 
+/* Values for the front wheel servo */
 #define WHEELS_MIN 295
 #define WHEELS_MAX 455
 #define WHEELS_STEP ((WHEELS_MAX - WHEELS_MIN) / 8)
 #define WHEELS_MIDDLE ((WHEELS_MAX + WHEELS_MIN) / 2)
+
+/* Values for PID steering */
+#define Kp 0.01
+#define Ki 0.000001
+#define Kd 0.5
+
 #define LAP_THRESHOLD 2
 
 void setup_bumper_ddr(void);

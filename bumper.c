@@ -18,12 +18,6 @@ void setup_bumper_ddr(void)
   BUMPER_DDR = 0;
 }
 
-#define Kp 0.01
-#define Ki 0.000001
-#define Kd 0.5
-
-float integral_value = 0;
-float derivate_value = 0;
 static volatile int laptime_secs = 0;
 static volatile int laptime_partial = 0;
 static volatile int currentLap = 1;
@@ -53,42 +47,41 @@ int get_lap_record_lap(void) {
 
 /* Returns the "rough" direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
-static float bumper_int = 0.0;
-int target_from_bumper_led(uint8_t bumper_byte)
-{
+static float bumper_float = 0.0;
+int target_from_bumper_led(uint8_t bumper_byte) {
   switch (bumper_byte) {
   case 0b00000001: // OIKEA
-    bumper_int = -4.0;
+    bumper_float = -4.0;
     break;
   case 0b00000010:
-    bumper_int = -2.8;
+    bumper_float = -2.8;
     break;
   case 0b00000100:
-    bumper_int = -1.3;
+    bumper_float = -1.3;
     break;
   case 0b00001000:
-    bumper_int = -0.4;
+    bumper_float = -0.4;
     break;
   case 0b00010000:
-    bumper_int = 0.4;
+    bumper_float = 0.4;
     break;
   case 0b00100000:
-    bumper_int = 1.3;
+    bumper_float = 1.3;
     break;
   case 0b01000000:
-    bumper_int = 2.8;
+    bumper_float = 2.8;
     break;
  case 0b10000000: // VASEN, WHEELS_MAXia vastava
-    bumper_int = 4.0;
+    bumper_float = 4.0;
     break;
   default:
-    bumper_int = bumper_int;
+    bumper_float = bumper_float;
   }
-  return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_int));
+  return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
 }
 
-int get_bumper_int(void) {
-  return bumper_int;
+int get_bumper_float(void) {
+  return bumper_float;
 }
 
 int get_hamming_weight(uint8_t byte)
@@ -122,12 +115,11 @@ void check_lap_record(void) {
   }
 }
 
-volatile int current_value = WHEELS_MIDDLE;
-
 void read_bumper_turn_wheels(void)
 {
+  static int integral_value = 0, current_value = WHEELS_MIDDLE;
   int target_value, error, previous_error;
-  float output;
+  float output, derivate_value;
   uint8_t bp = ~BUMPER_PIN;
   target_value = target_from_bumper_led(bp);
 

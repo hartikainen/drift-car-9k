@@ -89,7 +89,7 @@ int main(void)
       sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
       output_string(rpmbuf,1,3);
 
-      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_int());
+      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_float());
       output_string(bmpbuf, 1, 4);
 
       sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
