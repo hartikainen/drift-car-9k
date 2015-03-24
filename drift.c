@@ -25,33 +25,34 @@ static volatile unsigned int finish_line_counter = 0;
 static volatile char btn_delay = 0;
 
 void setup_timer2(void) {
+  // setup timer2 with 8x prescaler and overflow interrupt
   TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20);
   TIMSK2 |= (1 << OCIE2A);
-  OCR2A = 0b11111111;
+  OCR2A = 255;
 }
 
 void setup_leds(void) {
+  PORTC = 0;
   DDRC = 0xff;
 }
 
 void setup_button(void) {
-  DDRE = 0x0; // 0 or FF?
+  DDRE = 0x0;
 }
 
 void setup_tachometer(void) {
+  // Set the tachometer pin as input. Set clock 5 to external clock source.
   DDRL &= ~(1<<PL2);
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
 int main(void) {
-
   setup_leds();
   setup_tachometer();
   setup_bumper_ddr();
   setup_timer2();
 
   USART_init(MYUBRR);
-  PORTC = 0;
 
   setup_button();
 
@@ -62,7 +63,10 @@ int main(void) {
   char lapbuf[20];
   char recbuf[20];
   for(;;) {
+    // The main control loop. Compares control timer counter values and calls
+    // the control functions at suitable intervals.
     uint8_t bp = ~BUMPER_PIN;
+    // compensate for finishline.
     if (get_hamming_weight(bp) > 3) {
       bp = 0b00010000;
     }
@@ -83,6 +87,7 @@ int main(void) {
       update_acceleration();
       rpm_timer_counter = 0;
     }
+    // Button debounce timer
     if (btn_delay == 1) {
       if (btn_timer_counter > BTN_LOOP_COUNT) {
         btn_delay = 0;
@@ -90,6 +95,7 @@ int main(void) {
         btn_timer_counter = 0;
       }
     }
+    // Handle the button press. Toggle motor and update screen
     if (!(PINE & 1 << PE5) && btn_delay == 0) {
       toggle_motor();
       btn_delay = 1;
@@ -118,6 +124,7 @@ int main(void) {
 }
 
 ISR(TIMER2_COMPA_vect) {
+  // increment the control timers at homogenous rate.
   str_timer_counter++;
   rpm_timer_counter++;
   btn_timer_counter++;
