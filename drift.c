@@ -119,4 +119,5 @@ ISR(TIMER2_COMPA_vect) {
   btn_timer_counter++;
   lap_timer_counter++;
   scr_timer_counter++;
+  finish_line_counter++;
 }
