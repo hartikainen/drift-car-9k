@@ -25,9 +25,9 @@ void toggle_motor() {
   }
 }
 
-#define Kp 4.0
+#define Kp 3.0
 #define Ki 0.1
-#define Kd 2.0
+#define Kd 3.0
 #define MAXPWM 300.0
 
 static unsigned int rpm = 0;
