@@ -21,8 +21,7 @@ static volatile unsigned int lap_timer_counter = 0;
 static volatile unsigned int scr_timer_counter = 0;
 static volatile char btn_delay = 0;
 
-void setup_timer2(void)
-{
+void setup_timer2(void) {
   TCCR2B |= (1 << WGM22) | (0 << CS22) | (1 << CS21) | (0 << CS20);
   TIMSK2 |= (1 << OCIE2A);
   OCR2A = 0b11111111;
