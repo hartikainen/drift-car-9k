@@ -27,7 +27,7 @@ void toggle_motor() {
 
 #define Kp 3.0
 #define Ki 0.0
-#define Kd 1.0
+#define Kd 3.0
 #define MAXPWM 300.0
 
 static unsigned int rpm = 0;
@@ -53,25 +53,34 @@ void update_rpm(void) {
 }
 
 int get_target_rpm(void) {
-  static int tgt = 0;
+  static int straight_counter = 0, tgt = 0;
   uint8_t bp = ~BUMPER_PIN;
+
   switch (bp)
   {
     case 0b10000000:
     case 0b00000001:
-      tgt = 50;
+      tgt = 70;
+      straight_counter = 0;
       break;
     case 0b01000000:
     case 0b00000010:
-      tgt = 60;
+      tgt = 80;
+      straight_counter = 0;
       break;
     case 0b00100000:
     case 0b00000100:
-      tgt = 75;
+      tgt = 90;
+      straight_counter = 0;
       break;
     case 0b00010000:
     case 0b00001000:
-      tgt = 120;
+      if (straight_counter > 1) {
+	tgt = 140;
+      } else {
+	straight_counter++;
+	tgt = 100;
+      }
       break;
     default:
       break;

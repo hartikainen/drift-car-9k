@@ -9,14 +9,14 @@
 #define WHEELS_MIDDLE ((WHEELS_MAX + WHEELS_MIN) / 2)
 
 /* Values for PID steering, s for steering */
-#define sKp 0.9
-#define sKi 0//0.001
-#define sKd 0
+#define sKp 0.1
+#define sKi 0.0
+#define sKd 0.3
 
 #define LAP_THRESHOLD 2
 
 void setup_bumper_ddr(void);
-void read_bumper_turn_wheels(void);
+void read_bumper_turn_wheels(uint8_t);
 void turn_wheels(int direction);
 void setup_pwm(int val);
 void reset_PID_stuff(void);

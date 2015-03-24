@@ -126,11 +126,10 @@ void check_finish_line(void) {
 /* Function for turning the wheels according to the bumper leds reading */
 /* Basically, bumper led show where we should turn, and the function turns */
 /* The wheels according to the PID control values */
-void read_bumper_turn_wheels(void) {
+void read_bumper_turn_wheels(uint8_t bp) {
   static int integral_value = 0, current_value = WHEELS_MIDDLE;
   int target_value, error, previous_error, old_value;
   float output, derivate_value;
-  uint8_t bp = ~BUMPER_PIN;
   target_value = target_from_bumper_led(bp);
 
   old_value = current_value;

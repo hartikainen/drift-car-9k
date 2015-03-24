@@ -62,13 +62,17 @@ int main(void) {
   char lapbuf[20];
   char recbuf[20];
   for(;;) {
+    uint8_t bp = ~BUMPER_PIN;
+    if (get_hamming_weight(bp) > 3) {
+      bp = 0b00010000;
+    }
     if (lap_timer_counter > LAPTIME_LOOP_COUNT) {
       update_laptime();
       lap_timer_counter = 0;
     }
     if (str_timer_counter > STEERING_LOOP_COUNT) {
       str_timer_counter = 0;
-      read_bumper_turn_wheels();
+      read_bumper_turn_wheels(bp);
     }
     if (finish_line_counter > FINISHLINE_LOOP_COUNT) {
       check_finish_line();
