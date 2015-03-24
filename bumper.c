@@ -82,7 +82,7 @@ void check_lap_record(void) {
 /* between about WHEELS_MIN and WHEELS_MAX */
 int target_from_bumper_led(uint8_t bumper_byte) {
   switch (bumper_byte) {
-  case 0b00000001: // OIKEA
+  case 0b00000001: // RIGHT
     bumper_float = -4.0;
     break;
   case 0b00000010:
@@ -103,7 +103,7 @@ int target_from_bumper_led(uint8_t bumper_byte) {
   case 0b01000000:
     bumper_float = 3.0;
     break;
- case 0b10000000: // VASEN, WHEELS_MAXia vastava
+ case 0b10000000: // LEFT, corresponds to WHEELS_MAX
     bumper_float = 4.0;
     break;
   default:
