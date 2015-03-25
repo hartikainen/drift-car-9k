@@ -1,4 +1,6 @@
 void toggle_motor(void);
+void start_motor(void);
+void stop_motor(void);
 void update_acceleration(void);
 int get_rpm(void);
 int get_pwm(void);

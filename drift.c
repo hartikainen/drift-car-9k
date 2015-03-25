@@ -60,6 +60,7 @@ int main(void) {
   char bmpbuf[20];
   char rpmbuf[20];
   char pwmbuf[20];
+  char tgtbuf[20];
   char lapbuf[20];
   char recbuf[20];
   for(;;) {
@@ -109,16 +110,17 @@ int main(void) {
       sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
       output_string(pwmbuf, 1, 5);
 
-      sprintf(pwmbuf, "tgt:     %d  ", get_target_rpm());
-      output_string(pwmbuf, 1, 6);
+      sprintf(tgtbuf, "tgt:     %d  ", get_target_rpm());
+      output_string(tgtbuf, 1, 6);
 
       sprintf(lapbuf, "LAP: %d - %d.%d",
         get_current_lap(), get_laptime_secs(), get_laptime_partial());
       output_string(lapbuf, 1, 7);
 
-      sprintf(lapbuf, "RECORD: %d - %d.%d",
+      sprintf(recbuf, "RECORD: %d - %d.%d",
         get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
-      output_string(lapbuf, 1, 8);
+      output_string(recbuf, 1, 8);
+
     }
   }
 }

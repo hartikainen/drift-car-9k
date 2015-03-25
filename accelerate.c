@@ -28,10 +28,20 @@ void setup_motor_pwm(int pwmoffset) {
 
 static char motor_on = 0;
 void toggle_motor() {
-  motor_on = !motor_on;
-  if (!motor_on) {
+  if (motor_on) {
+    stop_motor();
     reset_laptime();
+  } else {
+    start_motor();
   }
+}
+
+void start_motor() {
+  motor_on = 1;
+}
+
+void stop_motor() {
+  motor_on = 0;
 }
 
 int get_rpm(void) {

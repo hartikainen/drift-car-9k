@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "bumper.h"
 #include "output.h"
+#include "accelerate.h"
 
 void setup_pwm(int val) {
   DDRB = 0xff;
@@ -16,6 +17,8 @@ void setup_pwm(int val) {
 void setup_bumper_ddr(void) {
   BUMPER_DDR = 0;
 }
+
+int oot_counter = 0; // out of track counter
 
 static volatile int laptime_secs = 0;
 static volatile int laptime_partial = 0;
@@ -103,12 +106,21 @@ int target_from_bumper_led(uint8_t bumper_byte) {
   case 0b01000000:
     bumper_float = 2.8;
     break;
- case 0b10000000: // LEFT, corresponds to WHEELS_MAX
+  case 0b10000000: // LEFT, corresponds to WHEELS_MAX
     bumper_float = 4.0;
     break;
   default:
-    bumper_float = bumper_float;
+    /* Case where there is no tape under the bumper led, */
+    /* or when several leds are on at the same time */
+    /* Stop the car if it's been out of the track for about 0.5 seconds */
+    if (bumper_float == 4.0 || bumper_float == -4.0) {
+      if (oot_counter++ > SAFETY_COUNTER) {
+	stop_motor();
+      }
+      return 0;
+    }
   }
+  oot_counter = 0;
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
 }
 
