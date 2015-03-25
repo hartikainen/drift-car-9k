@@ -9,9 +9,9 @@
 #define WHEELS_MIDDLE ((WHEELS_MAX + WHEELS_MIN) / 2)
 
 /* Values for PID steering, s for steering */
-#define sKp 0.1
+#define sKp 0.3
 #define sKi 0.0
-#define sKd 0.3
+#define sKd 0.0
 
 #define LAP_THRESHOLD 2
 

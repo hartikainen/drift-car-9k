@@ -86,22 +86,22 @@ int target_from_bumper_led(uint8_t bumper_byte) {
     bumper_float = -4.0;
     break;
   case 0b00000010:
-    bumper_float = -3.0;
+    bumper_float = -2.8;
     break;
   case 0b00000100:
-    bumper_float = -1.8;
+    bumper_float = -1.4;
     break;
   case 0b00001000:
-    bumper_float = -0.4;
+    bumper_float = -0.5;
     break;
   case 0b00010000:
-    bumper_float = 0.4;
+    bumper_float = 0.5;
     break;
   case 0b00100000:
-    bumper_float = 1.8;
+    bumper_float = 1.4;
     break;
   case 0b01000000:
-    bumper_float = 3.0;
+    bumper_float = 2.8;
     break;
  case 0b10000000: // LEFT, corresponds to WHEELS_MAX
     bumper_float = 4.0;

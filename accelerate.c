@@ -4,7 +4,7 @@
 #include "bumper.h"
 #include "output.h"
 
-#define Kp 3.0
+#define Kp 5.0
 #define Ki 0.0
 #define Kd 3.0
 #define MAXPWM 300.0
@@ -65,27 +65,30 @@ int get_target_rpm(void) {
   {
     case 0b10000000:
     case 0b00000001:
-      tgt = 70;
+      tgt = 80;
       straight_counter = 0;
       break;
     case 0b01000000:
     case 0b00000010:
-      tgt = 80;
+      tgt = 90;
       straight_counter = 0;
       break;
     case 0b00100000:
     case 0b00000100:
       tgt = 90;
+      if (straight_counter > 1) {
+	tgt = 0;
+      }
       straight_counter = 0;
       break;
     case 0b00010000:
     case 0b00001000:
       if (straight_counter > 1) {
-        tgt = 140;
+	tgt = 115;
       } else {
-        straight_counter++;
-        tgt = 100;
+        tgt = 105;
       }
+      straight_counter++;
       break;
     default:
       break;
@@ -114,7 +117,7 @@ void update_acceleration(void) {
   integral_value += error;
   derivative_value = error - last_error;
   proportional_value = error;
-  pwm = 0.80*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
+  pwm = 0.70*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
 
   if (pwm > MAXPWM) pwm = MAXPWM;
   if (pwm < 0) pwm = 0;
