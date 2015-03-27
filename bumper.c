@@ -116,8 +116,8 @@ int target_from_bumper_led(uint8_t bumper_byte) {
     if (bumper_float == 4.0 || bumper_float == -4.0) {
       if (oot_counter++ > SAFETY_COUNTER) {
 	stop_motor();
+	return 0;
       }
-      return 0;
     }
   }
   oot_counter = 0;

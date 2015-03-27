@@ -14,7 +14,7 @@
 #define sKd 0.0
 
 #define LAP_THRESHOLD 2
-#define SAFETY_COUNTER 200 // Counter for detecting out of track
+#define SAFETY_COUNTER 400 // Counter for detecting out of track
 
 void setup_bumper_ddr(void);
 void read_bumper_turn_wheels(uint8_t);

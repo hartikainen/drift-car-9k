@@ -94,9 +94,9 @@ int get_target_rpm(void) {
     case 0b00010000:
     case 0b00001000:
       if (straight_counter > 1) {
-	tgt = 115;
+	tgt = 120;
       } else {
-        tgt = 105;
+        tgt = 110;
       }
       straight_counter++;
       break;
