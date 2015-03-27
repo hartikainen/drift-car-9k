@@ -68,38 +68,57 @@ void update_rpm(void) {
 int get_target_rpm(void) {
   // calculate target rpm according to the bumper sensor
   // if we've driven straight for multiple intervals, increase target
-  static int straight_counter = 0, tgt = 0;
+  static int tgt = 0;
   uint8_t bp = ~BUMPER_PIN;
+  static int accel1[] = {120, 100, 0};
+  static int accel2[] = {140, 120, 0};
+  static int accel3[] = {160, 120, 0};
+  static int accel4[] = {200, 180, 160, 0};
 
   switch (bp)
   {
     case 0b10000000:
     case 0b00000001:
-      tgt = 80;
+      if (rpm > 4) {
+        tgt = accel1[2];
+      } else if (rpm > 2) {
+        tgt = accel1[1];
+      } else {
+        tgt = accel1[0];
+      }
       straight_counter = 0;
       break;
     case 0b01000000:
     case 0b00000010:
-      tgt = 90;
+      if (rpm > 4) {
+        tgt = accel2[2];
+      } else if (rpm > 2) {
+        tgt = accel2[1];
+      } else {
+        tgt = accel2[0];
+      }
       straight_counter = 0;
       break;
     case 0b00100000:
     case 0b00000100:
-      tgt = 90;
-      if (straight_counter > 1) {
-	tgt = 0;
+      if (rpm > 4) {
+        tgt = accel3[2];
+      } else if (rpm > 2) {
+        tgt = accel3[1];
+      } else {
+        tgt = accel3[0];
       }
-      straight_counter = 0;
       break;
     case 0b00010000:
     case 0b00001000:
-      if (straight_counter > 1) {
-	tgt = 120;
+      if (rpm > 4) {
+        tgt = accel4[2];
+      } else if (rpm > 2) {
+        tgt = accel4[1];
       } else {
-        tgt = 110;
+        tgt = accel4[0];
       }
-      straight_counter++;
-      break;
+     break;
     default:
       break;
   }
@@ -117,22 +136,23 @@ void update_acceleration(void) {
     return;
   }
 
-  static float integral_value = 0.0;
-  static float last_error = 0;
-  float derivative_value = 0.0;
-  float proportional_value = 0.0;
-  float tf = (float)get_target_rpm();
-  float error = tf - (float)rpm * 20.0;
+//  static float integral_value = 0.0;
+//  static float last_error = 0;
+//  float derivative_value = 0.0;
+//  float proportional_value = 0.0;
+//  float tf = (float)get_target_rpm();
+//  float error = tf - (float)rpm * 20.0;
 
-  integral_value += error;
-  derivative_value = error - last_error;
-  proportional_value = error;
-  pwm = 0.70*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
+//  integral_value += error;
+//  derivative_value = error - last_error;
+//  proportional_value = error;
+//  pwm = 0.70*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
 
-  if (pwm > MAXPWM) pwm = MAXPWM;
-  if (pwm < 0) pwm = 0;
+//  if (pwm > MAXPWM) pwm = MAXPWM;
+//  if (pwm < 0) pwm = 0;
 
-  setup_motor_pwm((int)pwm);
+//  setup_motor_pwm((int)pwm);
+  setup_motor_pwm(get_target_rpm());
 
-  last_error = error;
+//  last_error = error;
 }

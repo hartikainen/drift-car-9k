@@ -21,6 +21,7 @@ void setup_bumper_ddr(void) {
 int oot_counter = 0; // out of track counter
 
 static int laps[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static int odo = 0;
 static volatile int laptime_secs = 0;
 static volatile int laptime_partial = 0;
 static volatile int currentLap = 1;
@@ -132,7 +133,8 @@ void check_finish_line(void) {
     check_lap_record();
     laptime_secs = 0;
     laptime_partial = 0;
-    laps[currentLap] = TCNT5 - laps[currentLap - 1];
+    laps[currentLap] = TCNT5 - odo;
+    odo += laps[currentLap];
     currentLap++;
   }
 }
