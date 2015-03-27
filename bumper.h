@@ -35,3 +35,4 @@ void reset_laptime(void);
 int get_hamming(void);
 void check_lap_record(void);
 void check_finish_line(void);
+int *get_laps(void);

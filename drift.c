@@ -101,16 +101,17 @@ int main(void) {
       toggle_motor();
       btn_delay = 1;
       btn_timer_counter = 0;
-      sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
+      int *laps = get_laps();
+      sprintf(rpmbuf, "lap1:     %d  ", laps[1]);
       output_string(rpmbuf,1,3);
 
-      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_float());
+      sprintf(bmpbuf, "lap2:     %d  ", laps[2]);
       output_string(bmpbuf, 1, 4);
 
-      sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
+      sprintf(pwmbuf, "lap3:     %d  ", laps[3]);
       output_string(pwmbuf, 1, 5);
 
-      sprintf(tgtbuf, "tgt:     %d  ", get_target_rpm());
+      sprintf(tgtbuf, "lap4:     %d  ", laps[4]);
       output_string(tgtbuf, 1, 6);
 
       sprintf(lapbuf, "LAP: %d - %d.%d",
