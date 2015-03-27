@@ -68,8 +68,13 @@ int main(void) {
     // the control functions at suitable intervals.
     uint8_t bp = ~BUMPER_PIN;
     // compensate for finishline.
+
     if (get_hamming_weight(bp) > 3) {
       bp = 0b00010000;
+    }
+
+    if (check_finish_line()) {
+
     }
     if (lap_timer_counter > LAPTIME_LOOP_COUNT) {
       update_laptime();
@@ -79,10 +84,7 @@ int main(void) {
       str_timer_counter = 0;
       read_bumper_turn_wheels(bp);
     }
-    if (finish_line_counter > FINISHLINE_LOOP_COUNT) {
-      check_finish_line();
-      finish_line_counter = 0;
-    }
+    
     if (rpm_timer_counter > RPM_LOOP_COUNT) {
       update_rpm();
       update_acceleration();
@@ -101,25 +103,29 @@ int main(void) {
       toggle_motor();
       btn_delay = 1;
       btn_timer_counter = 0;
-      sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
-      output_string(rpmbuf,1,3);
+      // sprintf(rpmbuf, "RPM:     %d  ", get_rpm());
+      // output_string(rpmbuf,1,3);
 
-      sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_float());
-      output_string(bmpbuf, 1, 4);
+      // sprintf(bmpbuf, "BUMPER:  %d  ", get_bumper_float());
+      // output_string(bmpbuf, 1, 4);
 
-      sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
-      output_string(pwmbuf, 1, 5);
+      // sprintf(pwmbuf, "PWM:     %d  ", get_pwm());
+      // output_string(pwmbuf, 1, 5);
 
-      sprintf(tgtbuf, "tgt:     %d  ", get_target_rpm());
-      output_string(tgtbuf, 1, 6);
+      // sprintf(tgtbuf, "tgt:     %d  ", get_target_rpm());
+      // output_string(tgtbuf, 1, 6);
 
-      sprintf(lapbuf, "LAP: %d - %d.%d",
-        get_current_lap(), get_laptime_secs(), get_laptime_partial());
-      output_string(lapbuf, 1, 7);
+      // sprintf(lapbuf, "LAP: %d - %d.%d",
+      //   get_current_lap(), get_laptime_secs(), get_laptime_partial());
+      // output_string(lapbuf, 1, 7);
 
-      sprintf(recbuf, "RECORD: %d - %d.%d",
-        get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
-      output_string(recbuf, 1, 8);
+      // sprintf(recbuf, "RECORD: %d - %d.%d",
+      //   get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
+      // output_string(recbuf, 1, 8);
+
+      laps = get_lap_lengths();
+      sprintf(rpmbuf, "lap1:-%ld------", laps[1]);
+      output_string(recbuf, 1, 1));
 
     }
   }

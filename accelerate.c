@@ -4,6 +4,8 @@
 #include "bumper.h"
 #include "output.h"
 
+static volatile unsigned long odo = 0;
+
 #define Kp 5.0
 #define Ki 0.0
 #define Kd 3.0
@@ -56,13 +58,15 @@ int is_motor_on(void) {
   return motor_on;
 }
 
-void update_rpm(void) {
+int update_rpm(void) {
   static unsigned int previousTCNT = 0;
   if (TCNT5 < previousTCNT) {
     previousTCNT = 65536 - previousTCNT;
+    odo = odo + 65536;
   }
   rpm = TCNT5 - previousTCNT;
   previousTCNT = TCNT5;
+  return odo + TCNT5;
 }
 
 int get_target_rpm(void) {

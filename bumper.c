@@ -28,6 +28,8 @@ static volatile int lap_record_partial = 0;
 static volatile int lap_record_lap = 0;
 static float bumper_float = 0.0;
 
+static volatile long lap_lengths[] = {0,0,0,0,0,0,0,0,0,0,0};
+
 int get_laptime_secs(void) {
   return laptime_secs;
 }
@@ -49,6 +51,10 @@ int get_lap_record_lap(void) {
 
 int get_bumper_float(void) {
   return bumper_float;
+}
+
+long *get_lap_lengths(void) {
+  return lap_lengths;
 }
 
 /* Hamming weight, e.g. the count of active bumper leds */
@@ -124,15 +130,18 @@ int target_from_bumper_led(uint8_t bumper_byte) {
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
 }
 
-void check_finish_line(void) {
+int check_finish_line(void) {
 // Check if crossing finish line
   uint8_t bp = ~BUMPER_PIN;
   if (get_hamming_weight(bp) > 3 && laptime_secs > LAP_THRESHOLD) {
     check_lap_record();
     laptime_secs = 0;
     laptime_partial = 0;
+    lap_lengths[currentLap] = TCNT5 - lap_lengths[currentLap-1];
     currentLap++;
+    return 1;
   }
+  return 0;
 }
 
 /* Function for turning the wheels according to the bumper leds reading */
