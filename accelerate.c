@@ -86,7 +86,6 @@ int get_target_rpm(void) {
       } else {
         tgt = accel1[0];
       }
-      straight_counter = 0;
       break;
     case 0b01000000:
     case 0b00000010:
@@ -97,7 +96,6 @@ int get_target_rpm(void) {
       } else {
         tgt = accel2[0];
       }
-      straight_counter = 0;
       break;
     case 0b00100000:
     case 0b00000100:
@@ -131,6 +129,7 @@ void update_acceleration(void) {
   // Calculates Proportional, Integral and Derivative values
   // which are used to calculate suitable pwm value.
 
+  static int lap = 1;
   if (!motor_on) {
     setup_motor_pwm(0);
     return;
@@ -142,6 +141,10 @@ void update_acceleration(void) {
 //  float proportional_value = 0.0;
 //  float tf = (float)get_target_rpm();
 //  float error = tf - (float)rpm * 20.0;
+  if (lap < 2) {
+    setup_motor_pwm(110);
+    return;
+  }
 
 //  integral_value += error;
 //  derivative_value = error - last_error;

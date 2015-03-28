@@ -94,7 +94,7 @@ int target_from_bumper_led(uint8_t bumper_byte) {
     bumper_float = -2.8;
     break;
   case 0b00000100:
-    bumper_float = -1.4;
+    bumper_float = -2.0;
     break;
   case 0b00001000:
     bumper_float = -0.5;
@@ -103,7 +103,7 @@ int target_from_bumper_led(uint8_t bumper_byte) {
     bumper_float = 0.5;
     break;
   case 0b00100000:
-    bumper_float = 1.4;
+    bumper_float = 2.0;
     break;
   case 0b01000000:
     bumper_float = 2.8;
