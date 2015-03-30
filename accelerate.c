@@ -126,10 +126,12 @@ int get_target_rpm(void) {
   return tgt;
 }
 
+#define PRED_SIZE_PER_RPM 5
+
 #define STRAIGHT_PRED_SIZE 10
 #define STEERING_PRED_SIZE 3
 
-void get_predictions(int pred_size, uint8_t* ret_pred) {
+void get_predictions(uint8_t* ret_pred, int pred_size) {
   for (int i=0; i<pred_size; i++) {
     ret_pred[i] = get_prediction(i+1);
   }
@@ -145,50 +147,93 @@ int get_steering_count(uint8_t* preds, int pred_size) {
   return count;
 }
 
-int get_AI_target_pwm(void) {
-  uint8_t cp = get_prediction(0);
-  int target_pwm = 0;
-
-  if (cp == STRAIGHT_STEERING) {
-    uint8_t predictions[STEERING_PRED_SIZE];
-    get_predictions(STEERING_PRED_SIZE, predictions);
-    int steering_count = get_steering_count(predictions, STEERING_PRED_SIZE);
-    if (predictions[STEERING_PRED_SIZE-1] == LEFT_STEERING || predictions[STEERING_PRED_SIZE-1] == RIGHT_STEERING) {
-      target_pwm = -1;
-    } else if (steering_count > 5) {
-      target_pwm = 110;
-    } else if (steering_count == 0) {
-      target_pwm = 220;
-    } else {
-      target_pwm = 110;
-    }
-  } else {
-    uint8_t predictions[STRAIGHT_PRED_SIZE];
-    get_predictions(STRAIGHT_PRED_SIZE, predictions);
-    int steering_count = get_steering_count(predictions, STRAIGHT_PRED_SIZE);
-    int straight_count = STRAIGHT_PRED_SIZE - steering_count;
-    target_pwm = 110;
-  }
-
-  return target_pwm;
+int steering(uint8_t position) {
+  return (position != STRAIGHT_STEERING);
 }
 
-int get_actual_pwm(int target) {
-  if (target > 150) {
-    PORTC = 0b11111111;
-    if (rpm < 5) {
-      return 180;
-    } else {
-      return 210;
+#define STEEP_TURN_APPROACHING 1
+#define RANDOM_TURN_IN_THE_MIDDLE 2
+
+int get_turn_type(uint8_t* predictions, int pred_size) {
+  int steering_count = get_steering_count(predictions, pred_size);
+
+  if (steering_count > 1) {
+    return STEEP_TURN_APPROACHING;
+  } else if (predictions[pred_size] != STRAIGHT_STEERING) {
+    return STEEP_TURN_APPROACHING;
+  } else {
+    return RANDOM_TURN_IN_THE_MIDDLE;
+  }
+  return RANDOM_TURN_IN_THE_MIDDLE;
+}
+
+int get_straights_ahead(uint8_t* predictions, int pred_size) {
+  int count = 0;
+  for (int i=0; i<pred_size; i++) {
+    if (predictions[i] != STRAIGHT_STEERING) break;
+    count++;
+  }
+  return count;
+}
+
+#define BRAKES_PER_RPM 2
+
+int get_AI_target_pwm(void) {
+  uint8_t cp = get_prediction(0);
+  static int target_pwm = 0;
+
+  int currently_steering = steering(cp);
+  if (currently_steering) {
+    target_pwm = get_target_rpm();
+    return target_pwm;
+  }
+
+  int pred_size = PRED_SIZE_PER_RPM * rpm;
+  if (!pred_size) pred_size = 5;
+  uint8_t predictions[pred_size];
+
+  get_predictions(predictions, pred_size);
+  int steering_count = get_steering_count(predictions, pred_size);
+
+  if (steering_count == 0) {
+    switch (rpm) {
+    case (1):
+      target_pwm = 160;
+      break;
+    case (2):
+      target_pwm = 180;
+      break;
+    case (3):
+      target_pwm = 200;
+      break;
+    case (4):
+      target_pwm = 220;
+      break;
+    default:
+      target_pwm = 240;
+      break;
     }
   } else {
-    PORTC = 0;
-    if (rpm > 2) {
-      return -1;
+    int turn_type = get_turn_type(predictions, pred_size);
+    int straights_ahead = get_straights_ahead(predictions, pred_size);
+
+    if (turn_type == STEEP_TURN_APPROACHING) {
+      int brakes_needed = BRAKES_PER_RPM * rpm;
+      if (straights_ahead > brakes_needed + 5) {
+	target_pwm = target_pwm;
+      } else if (straights_ahead > brakes_needed) {
+	target_pwm = 130;
+      } else {
+	target_pwm = -1;
+      }
+    } else if (turn_type == RANDOM_TURN_IN_THE_MIDDLE) {
+      target_pwm = 130;
     } else {
-      return 130;
+      target_pwm = 130;
     }
-  }
+  } 
+
+  return target_pwm;
 }
 
 void update_acceleration(void) {
@@ -202,46 +247,24 @@ void update_acceleration(void) {
     return;
   }
 
-//  static float integral_value = 0.0;
-//  static float last_error = 0;
-//  float derivative_value = 0.0;
-//  float proportional_value = 0.0;
-//  float tf = (float)get_target_rpm();
-//  float error = tf - (float)rpm * 20.0;
-
   int lap = get_current_lap();
 
   if (lap < 2) {
     setup_motor_pwm(110);
     return;
   } else {
-    PORTC = ~PORTC;
     int target = get_AI_target_pwm();
-    int actual = get_actual_pwm(target);
+    //    int actual = get_actual_pwm(target);
 
-    if (actual < 0 || target < 0) {
-      if (rpm > 2) {
-	setup_brake();
-	return;
-      } else {
-	actual = 110;
-      }
-    }
-    setup_motor_pwm(actual);
+    /* if (target < 0) { */
+    /*   if (rpm > 2) { */
+    /* 	setup_brake(); */
+    /* 	return; */
+    /*   } else { */
+    /* 	actual = 110; */
+    /*   } */
+    /* } */
+    setup_motor_pwm(target);
     return;
   }
-
-//  integral_value += error;
-//  derivative_value = error - last_error;
-//  proportional_value = error;
-//  pwm = 0.70*((Kp * proportional_value) + (Ki * integral_value) + (Kd * derivative_value));
-
-//  if (pwm > MAXPWM) pwm = MAXPWM;
-//  if (pwm < 0) pwm = 0;
-
-//  setup_motor_pwm((int)pwm);
-//  setup_motor_pwm(get_target_rpm());
-//  setup_motor_pwm(120);
-
-//  last_error = error;
 }
