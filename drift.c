@@ -84,6 +84,10 @@ void inspect_track(void) {
       track_info[tcnt] = LEFT_STEERING;
     } else if (((bp & STRAIGHT_MASK)) && !(bp & (LEFT_TURN_MASK | RIGHT_TURN_MASK))) { // if going straight
       track_info[tcnt] = STRAIGHT_STEERING;
+    } else {
+      if (tcnt > 0) {
+        track_info[tcnt] = track_info[tcnt - 1];
+      }
     } 
   }
 }
@@ -167,16 +171,20 @@ int main(void) {
       /*   get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial()); */
       /* output_string(recbuf, 1, 8); */
 
-      int row, col;
-      char jiiri[10];
-      for (int i=0; i < 50; i++) {
-      	row = 3 + (int)(i/10);
-      	col = i % 10;
-	jiiri[col] = (char)(track_info[i] + 48);
-      	sprintf(pwmbuf, "%s", jiiri);
-	if (col == 9) {
-	  output_string(pwmbuf, col, row);
-	}
+      int row = 3, col;
+      char jiiri[20];
+      for (int i=0; i < 800; i++) {
+
+      	col = i % 17;
+        jiiri[col] = (char)(track_info[i] + 48);
+
+        if (col == 16) {
+          row = (row + 1) % 17;
+          
+          sprintf(pwmbuf, "%s", jiiri);
+          output_string(pwmbuf, 1, row);
+          _delay_ms(200);
+        }
       }
     }
   }
