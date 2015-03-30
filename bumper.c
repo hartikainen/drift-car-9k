@@ -86,6 +86,7 @@ void check_lap_record(void) {
 
 float BUMPER_FLOAT_STRAIGHT[8] = {-4.0, -1.5, -0.8, -0.5, 0.5, 0.8, 1.5, 4.0};
 float BUMPER_FLOAT_TURNING[8] = {-4.0, -3.0, -2.0, -1.0, 1.0, 2.0, 3.0, 4.0};
+float BUMPER_FLOAT_FIRST_LAP[8] = {-4.0, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 4.0};
 /* Returns the target direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
 int target_from_bumper_led(uint8_t bumper_byte) {
@@ -134,6 +135,7 @@ int target_from_bumper_led(uint8_t bumper_byte) {
       bumper_float = BUMPER_FLOAT_TURNING[idx];
       break;
     case (STRAIGHT_STEERING):
+      PORTC = 0; 
       bumper_float = BUMPER_FLOAT_STRAIGHT[idx];
       break;
     default:
@@ -141,7 +143,7 @@ int target_from_bumper_led(uint8_t bumper_byte) {
       break;
     }
   } else {
-    bumper_float = BUMPER_FLOAT_TURNING[idx];
+    bumper_float = BUMPER_FLOAT_FIRST_LAP[idx];
 
     uint8_t prediction = get_prediction(4);
     if (prediction == LEFT_STEERING || prediction == RIGHT_STEERING) {
@@ -164,6 +166,7 @@ void check_finish_line(void) {
     laps[currentLap] = TCNT5 - odo;
     odo += laps[currentLap];
     currentLap++;
+    TCNT5 = 0;
   }
 }
 

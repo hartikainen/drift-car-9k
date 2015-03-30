@@ -52,9 +52,11 @@ uint8_t* get_track_info(void) {
 
 uint8_t get_prediction(int delta) {
   unsigned int tcnt = TCNT5;
-  int position = ((int)tcnt + delta) % tcnt_per_lap;
-  
-  return track_info[position];
+  //  int position = ((int)tcnt + delta - 1) % tcnt_per_lap;
+  if (tcnt + delta > tcnt_per_lap) {
+    tcnt = (tcnt + delta) - tcnt_per_lap;
+  }
+  return track_info[tcnt + delta];
 }
 
 void inspect_track(void) {
@@ -89,7 +91,12 @@ void inspect_track(void) {
 	track_info[tcnt] = LEFT_STEERING;
       } else if (((bp & STRAIGHT_MASK)) && !(bp & (LEFT_TURN_MASK | RIGHT_TURN_MASK))) { // if going straight
 	track_info[tcnt] = STRAIGHT_STEERING;
-      }
+      } else {
+	if (tcnt > 0) {
+	  track_info[tcnt] = track_info[tcnt - 1];
+	}
+      } 
+
       tcnt_per_lap = tcnt;
     }
   }
@@ -172,6 +179,25 @@ int main(void) {
       /* sprintf(recbuf, "RECORD: %d - %d.%d", */
       /*   get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial()); */
       /* output_string(recbuf, 1, 8); */
+      int current_lap = get_current_lap();
+      if (current_lap > 1) {
+	int row, col;
+	char jiiri[20];
+
+	for (int i=0; i < tcnt_per_lap; i++) {
+
+	  col = i % 17;
+	  jiiri[col] = (char)(track_info[i] + 48);
+
+	  if (col == 16) {
+	    row = (row + 1) % 17;
+          
+	    sprintf(pwmbuf, "%s", jiiri);
+	    output_string(pwmbuf, 1, row + 1);
+	    _delay_ms(200);
+	  }
+	}
+      }
     }
   }
 }
