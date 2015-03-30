@@ -81,10 +81,9 @@ int get_target_rpm(void) {
   // if we've driven straight for multiple intervals, increase target
   static int tgt = 0;
   uint8_t bp = ~BUMPER_PIN;
-  static int accel1[] = {120, 100, 0};
-  static int accel2[] = {140, 120, 0};
-  static int accel3[] = {160, 120, 0};
-  static int accel4[] = {200, 180, 160, 0};
+  static int accel1[] = {130, 110, 0};
+  static int accel2[] = {140, 130, 0};
+  static int accel3[] = {160, 150, 0};
 
   switch (bp)
   {
@@ -118,17 +117,10 @@ int get_target_rpm(void) {
         tgt = accel3[0];
       }
       break;
-    case 0b00010000:
-    case 0b00001000:
-      if (rpm > 4) {
-        tgt = accel4[2];
-      } else if (rpm > 2) {
-        tgt = accel4[1];
-      } else {
-        tgt = accel4[0];
+   default:
+      if (rpm < 3) {
+        tgt = 130;
       }
-     break;
-    default:
       break;
   }
   return tgt;
