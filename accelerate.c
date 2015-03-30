@@ -127,6 +127,7 @@ int get_target_rpm(void) {
 }
 
 #define PRED_SIZE_PER_RPM 5
+#define MAX_RPM 15
 
 #define STRAIGHT_PRED_SIZE 10
 #define STEERING_PRED_SIZE 3
@@ -159,7 +160,7 @@ int get_turn_type(uint8_t* predictions, int pred_size) {
 
   if (steering_count > 1) {
     return STEEP_TURN_APPROACHING;
-  } else if (predictions[pred_size] != STRAIGHT_STEERING) {
+  } else if (predictions[pred_size-1] != STRAIGHT_STEERING) {
     return STEEP_TURN_APPROACHING;
   } else {
     return RANDOM_TURN_IN_THE_MIDDLE;
@@ -190,7 +191,7 @@ int get_AI_target_pwm(void) {
 
   int pred_size = PRED_SIZE_PER_RPM * rpm;
   if (!pred_size) pred_size = 5;
-  uint8_t predictions[pred_size];
+  uint8_t predictions[PRED_SIZE_PER_RPM * MAX_RPM];
 
   get_predictions(predictions, pred_size);
   int steering_count = get_steering_count(predictions, pred_size);
@@ -254,16 +255,12 @@ void update_acceleration(void) {
     return;
   } else {
     int target = get_AI_target_pwm();
-    //    int actual = get_actual_pwm(target);
 
-    /* if (target < 0) { */
-    /*   if (rpm > 2) { */
-    /* 	setup_brake(); */
-    /* 	return; */
-    /*   } else { */
-    /* 	actual = 110; */
-    /*   } */
-    /* } */
+    if (target < 0) {
+      setup_brake();
+      return;
+    }
+
     setup_motor_pwm(target);
     return;
   }
