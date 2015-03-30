@@ -3,6 +3,7 @@
 #include "accelerate.h"
 #include "bumper.h"
 #include "output.h"
+#include "drift.h"
 
 #define Kp 5.0
 #define Ki 0.0
@@ -18,12 +19,22 @@ void disable_motor_pwm(void) {
 
 void setup_motor_pwm(int pwmoffset) {
   // Sets the pulse width modulation for the motor.
-  PORTK |= 1 << PK0;
+  PORTK = 1 << PK0;
   DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
   TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
   TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
   ICR4 = 800; // 20kHz without prescaler
   OCR4A = ICR4 - pwmoffset;
+}
+
+void setup_brake(void) {
+  // Sets the pulse width modulation for the motor.
+  PORTK |= (1 << PK1) | (1 << PK0) ;
+  DDRH |= 1 << PH3; // PH3 OC4A (Output Compare and PWM Output A for Timer/Counter4)
+  TCCR4A |= 1 << WGM41 | 1 << COM4A1 | 1 << COM4A0;
+  TCCR4B |= 1 << WGM43 | 1 << WGM42 | 1 << CS40;
+  ICR4 = 800; // 20kHz without prescaler
+  OCR4A = ICR4 - 20;
 }
 
 static char motor_on = 0;
@@ -123,13 +134,77 @@ int get_target_rpm(void) {
   return tgt;
 }
 
+#define STRAIGHT_PRED_SIZE 10
+#define STEERING_PRED_SIZE 3
+
+void get_predictions(int pred_size, uint8_t* ret_pred) {
+  for (int i=0; i<pred_size; i++) {
+    ret_pred[i] = get_prediction(i+1);
+  }
+}
+
+int get_steering_count(uint8_t* preds, int pred_size) {
+  int count = 0;
+  for (int i=0; i<pred_size; i++) {
+    if (preds[i] == LEFT_STEERING || preds[i] == RIGHT_STEERING) {
+      count++;
+    }
+  }
+  return count;
+}
+
+int get_AI_target_pwm(void) {
+  uint8_t cp = get_prediction(0);
+  int target_pwm = 0;
+
+  if (cp == STRAIGHT_STEERING) {
+    uint8_t predictions[STEERING_PRED_SIZE];
+    get_predictions(STEERING_PRED_SIZE, predictions);
+    int steering_count = get_steering_count(predictions, STEERING_PRED_SIZE);
+    if (predictions[STEERING_PRED_SIZE-1] == LEFT_STEERING || predictions[STEERING_PRED_SIZE-1] == RIGHT_STEERING) {
+      target_pwm = -1;
+    } else if (steering_count > 5) {
+      target_pwm = 110;
+    } else if (steering_count == 0) {
+      target_pwm = 220;
+    } else {
+      target_pwm = 110;
+    }
+  } else {
+    uint8_t predictions[STRAIGHT_PRED_SIZE];
+    get_predictions(STRAIGHT_PRED_SIZE, predictions);
+    int steering_count = get_steering_count(predictions, STRAIGHT_PRED_SIZE);
+    int straight_count = STRAIGHT_PRED_SIZE - steering_count;
+    target_pwm = 110;
+  }
+
+  return target_pwm;
+}
+
+int get_actual_pwm(int target) {
+  if (target > 150) {
+    PORTC = 0b11111111;
+    if (rpm < 5) {
+      return 180;
+    } else {
+      return 210;
+    }
+  } else {
+    PORTC = 0;
+    if (rpm > 2) {
+      return -1;
+    } else {
+      return 130;
+    }
+  }
+}
+
 void update_acceleration(void) {
   // PID control for the motor.
   // Calculates the error between rpm and target rpm
   // Calculates Proportional, Integral and Derivative values
   // which are used to calculate suitable pwm value.
 
-  int lap = get_current_lap();
   if (!motor_on) {
     setup_motor_pwm(0);
     return;
@@ -141,8 +216,26 @@ void update_acceleration(void) {
 //  float proportional_value = 0.0;
 //  float tf = (float)get_target_rpm();
 //  float error = tf - (float)rpm * 20.0;
+
+  int lap = get_current_lap();
+
   if (lap < 2) {
     setup_motor_pwm(110);
+    return;
+  } else {
+    PORTC = ~PORTC;
+    int target = get_AI_target_pwm();
+    int actual = get_actual_pwm(target);
+
+    if (actual < 0 || target < 0) {
+      if (rpm > 2) {
+	setup_brake();
+	return;
+      } else {
+	actual = 110;
+      }
+    }
+    setup_motor_pwm(actual);
     return;
   }
 
@@ -155,7 +248,7 @@ void update_acceleration(void) {
 //  if (pwm < 0) pwm = 0;
 
 //  setup_motor_pwm((int)pwm);
-  setup_motor_pwm(get_target_rpm());
+//  setup_motor_pwm(get_target_rpm());
 //  setup_motor_pwm(120);
 
 //  last_error = error;

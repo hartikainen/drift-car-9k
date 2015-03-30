@@ -135,6 +135,7 @@ int main(void) {
     }
     if (str_timer_counter > STEERING_LOOP_COUNT) {
       str_timer_counter = 0;
+      update_acceleration();
       read_bumper_turn_wheels(bp);
     }
     if (finish_line_counter > FINISHLINE_LOOP_COUNT) {
@@ -143,14 +144,12 @@ int main(void) {
     }
     if (rpm_timer_counter > RPM_LOOP_COUNT) {
       update_rpm();
-      update_acceleration();
       rpm_timer_counter = 0;
     }
     // Button debounce timer
     if (btn_delay == 1) {
       if (btn_timer_counter > BTN_LOOP_COUNT) {
         btn_delay = 0;
-        PORTC = ~PORTC;
         btn_timer_counter = 0;
       }
     }

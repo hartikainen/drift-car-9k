@@ -131,11 +131,9 @@ int target_from_bumper_led(uint8_t bumper_byte) {
     switch (next_direction) {
     case (LEFT_STEERING):
     case (RIGHT_STEERING):
-      PORTC = ~PORTC;
       bumper_float = BUMPER_FLOAT_TURNING[idx];
       break;
     case (STRAIGHT_STEERING):
-      PORTC = 0; 
       bumper_float = BUMPER_FLOAT_STRAIGHT[idx];
       break;
     default:
@@ -146,11 +144,6 @@ int target_from_bumper_led(uint8_t bumper_byte) {
     bumper_float = BUMPER_FLOAT_FIRST_LAP[idx];
 
     uint8_t prediction = get_prediction(4);
-    if (prediction == LEFT_STEERING || prediction == RIGHT_STEERING) {
-      PINC = 0b11111111;
-    } else {
-      PINC = 0b00000000;
-    }
   }
 
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
