@@ -57,7 +57,7 @@ uint8_t track_info[800];
 void inspect_track(void) {
   static unsigned int prev_tcnt = 0;
   // prev_bp works as a queue data structure
-  static uint8_t prev_bp[PREV_BP_COUNT];
+  static uint8_t prev_bp = 0;
   static int on_straight = 1;
 
   unsigned int tcnt = TCNT5;
@@ -65,52 +65,26 @@ void inspect_track(void) {
   int i;
 
   if (tcnt > prev_tcnt) {
+
     prev_tcnt = tcnt;
+    prev_bp = bp;
 
-    // Push bp to the prev_bp queue
-    for (i=0; i<PREV_BP_COUNT-1; i++) {
-      prev_bp[i] = prev_bp[i+1];
-    }
-    prev_bp[PREV_BP_COUNT] = bp;
+    /* // Push bp to the prev_bp queue */
+    /* for (i=0; i<PREV_BP_COUNT-1; i++) { */
+    /*   prev_bp[i] = prev_bp[i+1]; */
+    /* } */
+    /* prev_bp[PREV_BP_COUNT] = bp; */
 
-    uint8_t old_bp;
     uint8_t same_steering = 0b00000000;
+    PORTC = ~PORTC;
 
-    for (i=0; i<PREV_BP_COUNT; i++) {
-      old_bp = prev_bp[i];
-      if (((old_bp & RIGHT_TURN_MASK) > 0) && !(old_bp & STRAIGHT_MASK)) { // if turning right
-	same_steering = same_steering | 0b00000001;
-      } else if (((old_bp & LEFT_TURN_MASK) > 0) && !(old_bp & STRAIGHT_MASK)) { // if turning left
-	same_steering = same_steering | 0b00000100;
-      } else if (((old_bp & STRAIGHT_MASK)) && !(old_bp & (LEFT_TURN_MASK | RIGHT_TURN_MASK))) { // if going straight
-	same_steering = same_steering | 0b00000010;
-      } 
-    }
-
-    if (on_straight) {
-      if (same_steering == RIGHT_STEERING) {
-	// Right turn started 3 steps ago
-	on_straight = 0;
-	track_info[tcnt] = same_steering;
-      } else if (same_steering == LEFT_STEERING) {
-	// Left turn started 3 steps ago
-	on_straight = 0;
-	track_info[tcnt] = same_steering;
-      } else {
-	track_info[tcnt] = STRAIGHT_STEERING;
-
-      }
-    } else {
-      if (same_steering == STRAIGHT_STEERING) {
-	// Straight started 3 steps ago
-	on_straight = 1;
-	track_info[tcnt] = same_steering;
-      } else if (same_steering == LEFT_STEERING) {
-	track_info[tcnt] = same_steering;
-      } else if (same_steering == RIGHT_STEERING) {
-	track_info[tcnt] = same_steering;
-      }
-    }
+    if (((bp & RIGHT_TURN_MASK) > 0) && !(bp & STRAIGHT_MASK)) { // if turning right
+      track_info[tcnt] = RIGHT_STEERING;
+    } else if (((bp & LEFT_TURN_MASK) > 0) && !(bp & STRAIGHT_MASK)) { // if turning left
+      track_info[tcnt] = LEFT_STEERING;
+    } else if (((bp & STRAIGHT_MASK)) && !(bp & (LEFT_TURN_MASK | RIGHT_TURN_MASK))) { // if going straight
+      track_info[tcnt] = STRAIGHT_STEERING;
+    } 
   }
 }
 
@@ -131,6 +105,7 @@ int main(void) {
   char tgtbuf[20];
   char lapbuf[20];
   char recbuf[20];
+  char trackbuf[200];
   for(;;) {
 
     inspect_track();
@@ -170,28 +145,39 @@ int main(void) {
     if (!(PINE & 1 << PE5) && btn_delay == 0) {
       toggle_motor();
       btn_delay = 1;
-      btn_timer_counter = 0;
-      int *laps = get_laps();
-      sprintf(rpmbuf, "lap1:     %d  ", laps[1]);
-      output_string(rpmbuf,1,3);
+      /* btn_timer_counter = 0; */
+      /* int *laps = get_laps(); */
+      /* sprintf(rpmbuf, "lap1:     %d  ", laps[1]); */
+      /* output_string(rpmbuf,1,3); */
 
-      sprintf(bmpbuf, "lap2:     %d  ", laps[2]);
-      output_string(bmpbuf, 1, 4);
+      /* sprintf(bmpbuf, "lap2:     %d  ", laps[2]); */
+      /* output_string(bmpbuf, 1, 4); */
 
-      sprintf(pwmbuf, "lap3:     %d  ", laps[3]);
-      output_string(pwmbuf, 1, 5);
+      /* sprintf(pwmbuf, "lap3:     %d  ", laps[3]); */
+      /* output_string(pwmbuf, 1, 5); */
 
-      sprintf(tgtbuf, "lap4:     %d  ", laps[4]);
-      output_string(tgtbuf, 1, 6);
+      /* sprintf(tgtbuf, "lap4:     %d  ", laps[4]); */
+      /* output_string(tgtbuf, 1, 6); */
 
-      sprintf(lapbuf, "LAP: %d - %d.%d",
-        get_current_lap(), get_laptime_secs(), get_laptime_partial());
-      output_string(lapbuf, 1, 7);
+      /* sprintf(lapbuf, "LAP: %d - %d.%d", */
+      /*   get_current_lap(), get_laptime_secs(), get_laptime_partial()); */
+      /* output_string(lapbuf, 1, 7); */
 
-      sprintf(recbuf, "RECORD: %d - %d.%d",
-        get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial());
-      output_string(recbuf, 1, 8);
+      /* sprintf(recbuf, "RECORD: %d - %d.%d", */
+      /*   get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial()); */
+      /* output_string(recbuf, 1, 8); */
 
+      int row, col;
+      char jiiri[10];
+      for (int i=0; i < 50; i++) {
+      	row = 3 + (int)(i/10);
+      	col = i % 10;
+	jiiri[col] = (char)(track_info[i] + 48);
+      	sprintf(pwmbuf, "%s", jiiri);
+	if (col == 9) {
+	  output_string(pwmbuf, col, row);
+	}
+      }
     }
   }
 }
