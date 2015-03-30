@@ -129,7 +129,7 @@ void update_acceleration(void) {
   // Calculates Proportional, Integral and Derivative values
   // which are used to calculate suitable pwm value.
 
-  static int lap = 1;
+  int lap = get_current_lap();
   if (!motor_on) {
     setup_motor_pwm(0);
     return;
@@ -156,6 +156,7 @@ void update_acceleration(void) {
 
 //  setup_motor_pwm((int)pwm);
   setup_motor_pwm(get_target_rpm());
+//  setup_motor_pwm(120);
 
 //  last_error = error;
 }

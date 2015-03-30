@@ -3,24 +3,11 @@
 #include <avr/interrupt.h>
 #include <avr/delay.h>
 
+#include "drift.h"
 #include "accelerate.h"
 #include "output.h"
 #include "bumper.h"
 #include "stdio.h"
-
-#define SCREEN_LOOP_COUNT 10000
-#define STEERING_LOOP_COUNT 100
-#define FINISHLINE_LOOP_COUNT 100
-#define RPM_LOOP_COUNT 1000
-#define BTN_LOOP_COUNT 5000
-#define LAPTIME_LOOP_COUNT 781
-#define PREV_BP_COUNT 3
-#define LEFT_TURN_MASK 0b11100000
-#define STRAIGHT_MASK 0b00011000
-#define RIGHT_TURN_MASK 0b00000111
-#define LEFT_STEERING 0b00000100
-#define STRAIGHT_STEERING 0b00000010
-#define RIGHT_STEERING 0b00000001
 
 static volatile unsigned int str_timer_counter = 0;
 static volatile unsigned int rpm_timer_counter = 0;
@@ -30,6 +17,8 @@ static volatile unsigned int scr_timer_counter = 0;
 static volatile unsigned int finish_line_counter = 0;
 
 static volatile char btn_delay = 0;
+int tcnt_per_lap = 0;
+uint8_t track_info[800];
 
 void setup_timer2(void) {
   // setup timer2 with 8x prescaler and overflow interrupt
@@ -53,38 +42,56 @@ void setup_tachometer(void) {
   TCCR5B |= 1 << CS51 | 1 << CS52;
 }
 
-uint8_t track_info[800];
-void inspect_track(void) {
-  static unsigned int prev_tcnt = 0;
-  // prev_bp works as a queue data structure
-  static uint8_t prev_bp = 0;
-  static int on_straight = 1;
+int get_tcnt_per_lap(void) {
+  return tcnt_per_lap;
+}
 
+uint8_t* get_track_info(void) {
+  return track_info;
+}
+
+uint8_t get_prediction(int delta) {
   unsigned int tcnt = TCNT5;
-  uint8_t bp = ~BUMPER_PIN;
-  int i;
+  int position = ((int)tcnt + delta) % tcnt_per_lap;
+  
+  return track_info[position];
+}
 
-  if (tcnt > prev_tcnt) {
+void inspect_track(void) {
+  int current_lap = get_current_lap();
+  if (current_lap == 1) {
+    static unsigned int prev_tcnt = 0;
+    // prev_bp works as a queue data structure
+    static uint8_t prev_bp = 0;
+    static int on_straight = 1;
 
-    prev_tcnt = tcnt;
-    prev_bp = bp;
+    unsigned int tcnt = TCNT5;
+    uint8_t bp = ~BUMPER_PIN;
+    int i;
 
-    /* // Push bp to the prev_bp queue */
-    /* for (i=0; i<PREV_BP_COUNT-1; i++) { */
-    /*   prev_bp[i] = prev_bp[i+1]; */
-    /* } */
-    /* prev_bp[PREV_BP_COUNT] = bp; */
+    if (tcnt > prev_tcnt) {
 
-    uint8_t same_steering = 0b00000000;
-    PORTC = ~PORTC;
+      prev_tcnt = tcnt;
+      prev_bp = bp;
 
-    if (((bp & RIGHT_TURN_MASK) > 0) && !(bp & STRAIGHT_MASK)) { // if turning right
-      track_info[tcnt] = RIGHT_STEERING;
-    } else if (((bp & LEFT_TURN_MASK) > 0) && !(bp & STRAIGHT_MASK)) { // if turning left
-      track_info[tcnt] = LEFT_STEERING;
-    } else if (((bp & STRAIGHT_MASK)) && !(bp & (LEFT_TURN_MASK | RIGHT_TURN_MASK))) { // if going straight
-      track_info[tcnt] = STRAIGHT_STEERING;
-    } 
+      /* // Push bp to the prev_bp queue */
+      /* for (i=0; i<PREV_BP_COUNT-1; i++) { */
+      /*   prev_bp[i] = prev_bp[i+1]; */
+      /* } */
+      /* prev_bp[PREV_BP_COUNT] = bp; */
+
+      uint8_t same_steering = 0b00000000;
+      //      PORTC = ~PORTC;
+
+      if (((bp & RIGHT_TURN_MASK) > 0) && !(bp & STRAIGHT_MASK)) { // if turning right
+	track_info[tcnt] = RIGHT_STEERING;
+      } else if (((bp & LEFT_TURN_MASK) > 0) && !(bp & STRAIGHT_MASK)) { // if turning left
+	track_info[tcnt] = LEFT_STEERING;
+      } else if (((bp & STRAIGHT_MASK)) && !(bp & (LEFT_TURN_MASK | RIGHT_TURN_MASK))) { // if going straight
+	track_info[tcnt] = STRAIGHT_STEERING;
+      }
+      tcnt_per_lap = tcnt;
+    }
   }
 }
 
@@ -107,7 +114,6 @@ int main(void) {
   char recbuf[20];
   char trackbuf[200];
   for(;;) {
-
     inspect_track();
     // The main control loop. Compares control timer counter values and calls
     // the control functions at suitable intervals.
@@ -166,18 +172,6 @@ int main(void) {
       /* sprintf(recbuf, "RECORD: %d - %d.%d", */
       /*   get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial()); */
       /* output_string(recbuf, 1, 8); */
-
-      int row, col;
-      char jiiri[10];
-      for (int i=0; i < 50; i++) {
-      	row = 3 + (int)(i/10);
-      	col = i % 10;
-	jiiri[col] = (char)(track_info[i] + 48);
-      	sprintf(pwmbuf, "%s", jiiri);
-	if (col == 9) {
-	  output_string(pwmbuf, col, row);
-	}
-      }
     }
   }
 }

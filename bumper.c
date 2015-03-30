@@ -5,6 +5,7 @@
 #include "bumper.h"
 #include "output.h"
 #include "accelerate.h"
+#include "drift.h"
 
 void setup_pwm(int val) {
   DDRB = 0xff;
@@ -83,46 +84,73 @@ void check_lap_record(void) {
   }
 }
 
+float BUMPER_FLOAT_STRAIGHT[8] = {-4.0, -1.5, -0.8, -0.5, 0.5, 0.8, 1.5, 4.0};
+float BUMPER_FLOAT_TURNING[8] = {-4.0, -3.0, -2.0, -1.0, 1.0, 2.0, 3.0, 4.0};
 /* Returns the target direction in the pwm units, */
 /* between about WHEELS_MIN and WHEELS_MAX */
 int target_from_bumper_led(uint8_t bumper_byte) {
+  static int idx = 0;
+  int next_direction;
+
   switch (bumper_byte) {
   case 0b00000001: // RIGHT
-    bumper_float = -4.0;
+    idx = 0;//-4.0;
     break;
   case 0b00000010:
-    bumper_float = -2.8;
+    idx = 1;//-2.8;
     break;
   case 0b00000100:
-    bumper_float = -2.0;
+    idx = 2;//-2.0;
     break;
   case 0b00001000:
-    bumper_float = -0.5;
+    idx = 3;//-0.5;
     break;
   case 0b00010000:
-    bumper_float = 0.5;
+    idx = 4;//0.5;
     break;
   case 0b00100000:
-    bumper_float = 2.0;
+    idx = 5;//2.0;
     break;
   case 0b01000000:
-    bumper_float = 2.8;
+    idx = 6;//2.8;
     break;
   case 0b10000000: // LEFT, corresponds to WHEELS_MAX
-    bumper_float = 4.0;
+    idx = 7;//4.0;
     break;
   default:
     /* Case where there is no tape under the bumper led, */
     /* or when several leds are on at the same time */
     /* Stop the car if it's been out of the track for about 0.5 seconds */
-    if (bumper_float == 4.0 || bumper_float == -4.0) {
-      if (oot_counter++ > SAFETY_COUNTER) {
-	stop_motor();
-	return 0;
-      }
+    break;
+  }
+
+  next_direction = get_prediction(1);
+
+  if (currentLap > 1) {
+    switch (next_direction) {
+    case (LEFT_STEERING):
+    case (RIGHT_STEERING):
+      PORTC = ~PORTC;
+      bumper_float = BUMPER_FLOAT_TURNING[idx];
+      break;
+    case (STRAIGHT_STEERING):
+      bumper_float = BUMPER_FLOAT_STRAIGHT[idx];
+      break;
+    default:
+      bumper_float = BUMPER_FLOAT_STRAIGHT[idx];
+      break;
+    }
+  } else {
+    bumper_float = BUMPER_FLOAT_TURNING[idx];
+
+    uint8_t prediction = get_prediction(4);
+    if (prediction == LEFT_STEERING || prediction == RIGHT_STEERING) {
+      PINC = 0b11111111;
+    } else {
+      PINC = 0b00000000;
     }
   }
-  oot_counter = 0;
+
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
 }
 
