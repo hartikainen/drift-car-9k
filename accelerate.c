@@ -267,9 +267,11 @@ void update_acceleration(void) {
     }
 
     if (lap == 2) {
-      target = (int)(0.9 * (float)target);
+      float t = (float)target * 1.0;
+      target = (int)(0.9 * t);
     } else if (lap == 3) {
-      target = (int)(1.2 * (float)target);
+      float t = (float)target * 1.0;
+      target = (int)(1.2 * t);
     }
 
     setup_motor_pwm(target);
