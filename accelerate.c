@@ -89,7 +89,7 @@ int get_target_rpm(void) {
   {
     case 0b10000000:
     case 0b00000001:
-      if (rpm > 4) {
+      if (rpm > 5) {
         tgt = accel1[2];
       } else if (rpm > 2) {
         tgt = accel1[1];
@@ -99,7 +99,7 @@ int get_target_rpm(void) {
       break;
     case 0b01000000:
     case 0b00000010:
-      if (rpm > 4) {
+      if (rpm > 5) {
         tgt = accel2[2];
       } else if (rpm > 2) {
         tgt = accel2[1];
@@ -109,7 +109,7 @@ int get_target_rpm(void) {
       break;
     case 0b00100000:
     case 0b00000100:
-      if (rpm > 5) {
+      if (rpm > 6) {
         tgt = accel3[2];
       } else if (rpm > 3) {
         tgt = accel3[1];
@@ -177,7 +177,7 @@ int get_straights_ahead(uint8_t* predictions, int pred_size) {
   return count;
 }
 
-#define BRAKES_PER_RPM 2
+#define BRAKES_PER_RPM 3
 
 int get_AI_target_pwm(void) {
   uint8_t cp = get_prediction(0);
@@ -254,6 +254,7 @@ void update_acceleration(void) {
     setup_motor_pwm(110);
     return;
   } else {
+
     int target = get_AI_target_pwm();
 
     if (target < 0) {
@@ -263,6 +264,12 @@ void update_acceleration(void) {
       } else {
 	target = 130;
       }
+    }
+
+    if (lap == 2) {
+      target = (int)(0.9 * (float)target);
+    } else if (lap == 3) {
+      target = (int)(1.2 * (float)target);
     }
 
     setup_motor_pwm(target);

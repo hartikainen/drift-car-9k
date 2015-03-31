@@ -84,7 +84,7 @@ void check_lap_record(void) {
   }
 }
 
-float BUMPER_FLOAT_STRAIGHT[8] = {-0.9, -0.5, -0.3, -0.0, 0.3, 0.5, 0.9, 1.4};
+float BUMPER_FLOAT_STRAIGHT[8] = {-0.9, -0.5, -0.3, 0.0, 0.3, 0.5, 0.9, 1.4};
 float BUMPER_FLOAT_TURNING[8] = {-4.0, -3.0, -2.0, -1.0, 1.0, 2.0, 3.0, 4.0};
 float BUMPER_FLOAT_FIRST_LAP[8] = {-4.0, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 4.0};
 /* Returns the target direction in the pwm units, */
@@ -142,8 +142,6 @@ int target_from_bumper_led(uint8_t bumper_byte) {
     }
   } else {
     bumper_float = BUMPER_FLOAT_FIRST_LAP[idx];
-
-    uint8_t prediction = get_prediction(4);
   }
 
   return (int)((float)WHEELS_MIDDLE + ((float)WHEELS_STEP * bumper_float));
