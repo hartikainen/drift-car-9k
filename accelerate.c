@@ -109,9 +109,9 @@ int get_target_rpm(void) {
       break;
     case 0b00100000:
     case 0b00000100:
-      if (rpm > 4) {
+      if (rpm > 5) {
         tgt = accel3[2];
-      } else if (rpm > 2) {
+      } else if (rpm > 3) {
         tgt = accel3[1];
       } else {
         tgt = accel3[0];
@@ -199,19 +199,19 @@ int get_AI_target_pwm(void) {
   if (steering_count == 0) {
     switch (rpm) {
     case (1):
-      target_pwm = 160;
+      target_pwm = 190;
       break;
     case (2):
-      target_pwm = 180;
+      target_pwm = 210;
       break;
     case (3):
-      target_pwm = 200;
+      target_pwm = 240;
       break;
     case (4):
-      target_pwm = 220;
+      target_pwm = 280;
       break;
     default:
-      target_pwm = 240;
+      target_pwm = 300;
       break;
     }
   } else {
@@ -257,8 +257,12 @@ void update_acceleration(void) {
     int target = get_AI_target_pwm();
 
     if (target < 0) {
-      setup_brake();
-      return;
+      if (rpm > 3) {
+	setup_brake();
+	return;
+      } else {
+	target = 130;
+      }
     }
 
     setup_motor_pwm(target);
