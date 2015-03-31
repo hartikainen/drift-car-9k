@@ -1,13 +1,10 @@
 #include <inttypes.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/delay.h>
 
 #include "drift.h"
 #include "accelerate.h"
-#include "output.h"
 #include "bumper.h"
-#include "stdio.h"
 
 static volatile unsigned int str_timer_counter = 0;
 static volatile unsigned int rpm_timer_counter = 0;
@@ -18,7 +15,7 @@ static volatile unsigned int finish_line_counter = 0;
 
 static volatile char btn_delay = 0;
 int tcnt_per_lap = 0;
-uint8_t track_info[1600];
+uint8_t track_info[3000];
 
 void setup_timer2(void) {
   // setup timer2 with 8x prescaler and overflow interrupt
@@ -108,7 +105,7 @@ int main(void) {
   setup_bumper_ddr();
   setup_timer2();
 
-  USART_init(MYUBRR);
+  //  USART_init(MYUBRR);
 
   setup_button();
 
@@ -126,7 +123,7 @@ int main(void) {
     // the control functions at suitable intervals.
     uint8_t bp = ~BUMPER_PIN;
     // compensate for finishline.
-    if (get_hamming_weight(bp) > 3) {
+    if (get_hamming_weight(bp) > 5) {
       bp = 0b00010000;
     }
     if (lap_timer_counter > LAPTIME_LOOP_COUNT) {
@@ -178,25 +175,6 @@ int main(void) {
       /* sprintf(recbuf, "RECORD: %d - %d.%d", */
       /*   get_lap_record_lap(), get_lap_record_secs(), get_lap_record_partial()); */
       /* output_string(recbuf, 1, 8); */
-      int current_lap = get_current_lap();
-      if (current_lap > 1) {
-	int row, col;
-	char jiiri[20];
-
-	for (int i=0; i < tcnt_per_lap; i++) {
-
-	  col = i % 17;
-	  jiiri[col] = (char)(track_info[i] + 48);
-
-	  if (col == 16) {
-	    row = (row + 1) % 17;
-          
-	    sprintf(pwmbuf, "%s", jiiri);
-	    output_string(pwmbuf, 1, row + 1);
-	    _delay_ms(200);
-	  }
-	}
-      }
     }
   }
 }

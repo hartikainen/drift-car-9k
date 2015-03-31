@@ -13,7 +13,7 @@
 #define sKi 0.0
 #define sKd 0.0
 
-#define LAP_THRESHOLD 2
+#define LAP_THRESHOLD 10
 #define SAFETY_COUNTER 400 // Counter for detecting out of track
 
 void setup_bumper_ddr(void);
