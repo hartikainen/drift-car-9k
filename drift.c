@@ -18,7 +18,7 @@ static volatile unsigned int finish_line_counter = 0;
 
 static volatile char btn_delay = 0;
 int tcnt_per_lap = 0;
-uint8_t track_info[800];
+uint8_t track_info[1600];
 
 void setup_timer2(void) {
   // setup timer2 with 8x prescaler and overflow interrupt

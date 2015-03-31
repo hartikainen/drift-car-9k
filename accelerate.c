@@ -261,6 +261,10 @@ void update_acceleration(void) {
       return;
     }
 
+    if (lap == 3) {
+      target = target + 30;
+    }
+
     setup_motor_pwm(target);
     return;
   }
